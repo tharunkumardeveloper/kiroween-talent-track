@@ -41,8 +41,11 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
   const [currentReps, setCurrentReps] = useState(0);
   const [currentMetrics, setCurrentMetrics] = useState<any>(null);
   const [processingMessage, setProcessingMessage] = useState('Analyzing your workout...');
-  const [useBackend, setUseBackend] = useState(false); // Use browser processing by default (serverless)
+  const [useBackend, setUseBackend] = useState(false); // ALWAYS use browser processing (serverless)
   const [outputId, setOutputId] = useState<string>('');
+  
+  // Force browser-only mode in production
+  const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
   useEffect(() => {
     // Cleanup function
@@ -90,8 +93,15 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
     setIsProcessing(true);
     setProgress(0);
 
-    // Check if backend is available
-    if (useBackend) {
+    // ALWAYS use browser processing in production (no backend needed)
+    if (isProduction) {
+      console.log('Production mode: Using browser-only processing');
+      await processWithBrowser(file);
+      return;
+    }
+
+    // In development, check if backend is available
+    if (useBackend && !isProduction) {
       const serverAvailable = await backendProcessor.checkServerStatus();
       if (serverAvailable) {
         await processWithBackend(file);
@@ -210,9 +220,16 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
 
   const processWithBrowser = async (file: File) => {
     try {
+      setProcessingMessage('Loading MediaPipe AI models...');
+      console.log('Starting browser-based video processing for:', activityName);
+      console.log('Video file:', file.name, file.size, 'bytes', file.type);
+      
+      // Validate video file
+      if (!file.type.startsWith('video/')) {
+        throw new Error('Invalid file type. Please upload a video file.');
+      }
+      
       setProcessingMessage('Analyzing your workout...');
-      console.log('Starting video processing for:', activityName);
-      console.log('Video file:', file.name, file.size, 'bytes');
       
       // Process video with MediaPipe in browser
       const processingResult = await mediapipeProcessor.processVideo(
@@ -280,14 +297,20 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
       setIsProcessing(false);
       setLiveFrame(''); // Clear live frame
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing video:', error);
+      console.error('Error stack:', error.stack);
       setIsProcessing(false);
       setLiveFrame('');
-      toast.error("Failed to process video. Please try again.");
+      
+      // Show specific error message
+      const errorMessage = error.message || "Failed to process video. Please try again.";
+      toast.error(errorMessage);
+      
+      // Give user option to retry
       setTimeout(() => {
         onRetry();
-      }, 2000);
+      }, 3000);
     } finally {
       mediapipeProcessor.cleanup();
     }
