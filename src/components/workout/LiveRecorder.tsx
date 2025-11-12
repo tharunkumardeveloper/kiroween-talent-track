@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Video, StopCircle, Play, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Video, StopCircle, Play, RotateCcw, Lightbulb } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { mediapipeProcessor } from '@/services/mediapipeProcessor';
 
