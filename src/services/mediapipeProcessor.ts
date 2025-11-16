@@ -130,85 +130,83 @@ class MediaPipeProcessor {
     return angle;
   }
 
-  async createVideoFromFrames(frames: ImageData[], fps: number): Promise<Blob> {
-    // Create a temporary canvas for rendering frames
-    const tempCanvas = document.createElement('canvas');
+  async createVideoFromFrames(frames: ImageData[], fps: number, actualDuration?: number): Promise<Blob> {
     if (frames.length === 0) {
       return new Blob([], { type: 'video/webm' });
     }
     
+    console.log(`Creating video: ${frames.length} frames at ${fps}fps`);
+    
+    const tempCanvas = document.createElement('canvas');
     tempCanvas.width = frames[0].width;
     tempCanvas.height = frames[0].height;
-    const tempCtx = tempCanvas.getContext('2d', { 
-      alpha: false,
-      desynchronized: true // Better performance
-    })!;
+    const tempCtx = tempCanvas.getContext('2d', { alpha: false })!;
     
-    // Setup MediaRecorder with the temp canvas - HIGHER BITRATE for better quality
-    const stream = tempCanvas.captureStream(fps);
+    // Manual capture with 0 fps for precise control
+    const stream = tempCanvas.captureStream(0);
+    const track = stream.getVideoTracks()[0] as any;
     
+    // Good bitrate for quality
     let options: MediaRecorderOptions;
-    // Use higher bitrate (8 Mbps) for smoother video
-    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-      options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 8000000 };
-    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-      options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 8000000 };
-    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
-      options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 8000000 };
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+      options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 5000000 };
     } else {
-      options = { mimeType: 'video/webm', videoBitsPerSecond: 8000000 };
+      options = { mimeType: 'video/webm', videoBitsPerSecond: 5000000 };
     }
     
     const recorder = new MediaRecorder(stream, options);
     const chunks: Blob[] = [];
     
     recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        chunks.push(e.data);
-      }
+      if (e.data.size > 0) chunks.push(e.data);
     };
     
-    // Start recording with smaller timeslice for smoother output
-    recorder.start(100); // Collect data every 100ms
-    
-    // Render frames using requestAnimationFrame for smoother playback
-    const frameDuration = 1000 / fps; // milliseconds per frame
-    let frameIndex = 0;
-    let lastFrameTime = performance.now();
+    recorder.start();
     
     return new Promise((resolve) => {
-      const renderFrame = (currentTime: number) => {
+      let frameIndex = 0;
+      const frameDuration = 1000 / fps;
+      const startTime = performance.now();
+      
+      // Use setInterval for consistent timing
+      const interval = setInterval(() => {
         if (frameIndex >= frames.length) {
-          // All frames rendered, stop recording
-          recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: options.mimeType || 'video/webm' });
-            console.log('Video created:', blob.size, 'bytes', blob.type);
-            resolve(blob);
-          };
-          recorder.stop();
+          clearInterval(interval);
+          
+          // Wait for encoder to finish
+          setTimeout(() => {
+            recorder.onstop = async () => {
+              const blob = new Blob(chunks, { type: options.mimeType || 'video/webm' });
+              console.log(`Video blob: ${blob.size} bytes`);
+              
+              // Use actual duration from original video
+              const duration = actualDuration ? actualDuration * 1000 : (frames.length / fps) * 1000;
+              console.log(`Setting video duration to ${duration}ms (${(duration/1000).toFixed(2)}s)`);
+              const fixedBlob = await fixWebmDuration(blob, duration);
+              resolve(fixedBlob);
+            };
+            recorder.stop();
+          }, 300);
           return;
         }
         
-        // Check if enough time has passed for next frame
-        const elapsed = currentTime - lastFrameTime;
-        if (elapsed >= frameDuration) {
-          // Render current frame
-          tempCtx.putImageData(frames[frameIndex], 0, 0);
-          
-          if (frameIndex % 30 === 0) {
-            console.log(`Rendering frame ${frameIndex}/${frames.length} to video...`);
-          }
-          
-          frameIndex++;
-          lastFrameTime = currentTime;
+        // Draw frame
+        tempCtx.putImageData(frames[frameIndex], 0, 0);
+        
+        // Request frame capture
+        if (track.requestFrame) {
+          track.requestFrame();
         }
         
-        // Continue to next frame
-        requestAnimationFrame(renderFrame);
-      };
-      
-      // Start rendering
-      requestAnimationFrame(renderFrame);
+        if (frameIndex % 30 === 0) {
+          const elapsed = performance.now() - startTime;
+          const expectedTime = (frameIndex / fps) * 1000;
+          const drift = elapsed - expectedTime;
+          console.log(`Rendering frame ${frameIndex}/${frames.length} (drift: ${drift.toFixed(0)}ms)`);
+        }
+        
+        frameIndex++;
+      }, frameDuration);
     });
   }
 
@@ -249,11 +247,12 @@ class MediaPipeProcessor {
           return;
         }
         
-        // Use moderate resolution for balance between speed and accuracy
-        const scale = Math.min(1, 640 / video.videoWidth);
+        // Use 640p for good quality
+        const targetWidth = 640;
+        const scale = Math.min(1, targetWidth / video.videoWidth);
         this.canvas!.width = Math.floor(video.videoWidth * scale);
         this.canvas!.height = Math.floor(video.videoHeight * scale);
-        const fps = 30; // Target 30fps like Python
+        const fps = 30; // 30fps for smooth playback
         totalFrames = Math.floor(video.duration * fps);
         
         console.log('Processing at:', this.canvas!.width, 'x', this.canvas!.height);
@@ -263,9 +262,16 @@ class MediaPipeProcessor {
         this.processedFrames = [];
         console.log('Starting video processing (frame-by-frame)...');
         
-        // DON'T play the video - we'll manually seek through frames
+        // Slow down playback to give MediaPipe time to process
+        video.playbackRate = 0.5; // Half speed for accurate processing
         video.currentTime = 0;
         processingStarted = true;
+        
+        // Start playing
+        video.play().catch(err => {
+          console.error('Error playing video:', err);
+          reject(new Error('Failed to play video'));
+        });
       };
       
       video.onplay = () => {
@@ -282,140 +288,113 @@ class MediaPipeProcessor {
         reject(new Error('Video loading failed'));
       };
 
-      let lastFrameDataUrl = '';
+      let lastCapturedFrame = '';
       let safetyTimeout: NodeJS.Timeout;
-      
       let processingStarted = false;
-      let isProcessingFrame = false;
+      let lastProcessTime = -1;
+      let isProcessing = false;
+      const targetFPS = 30;
       
+      // Process frames as video plays naturally (like Python's cap.read())
       const processFrame = async () => {
-        // Don't start until canvas is ready
         if (!this.canvas || !this.ctx || !processingStarted) {
           requestAnimationFrame(processFrame);
           return;
         }
         
-        // Check if we're done processing all frames
-        if (frameCount >= totalFrames || video.currentTime >= video.duration) {
+        // Check if video ended
+        if (video.ended || video.currentTime >= video.duration) {
           console.log('Video processing complete!');
-          console.log('  Frames processed:', frameCount);
-          console.log('  Total frames collected:', this.processedFrames.length);
-          console.log('  Duration:', video.duration);
+          console.log('  Frames collected:', this.processedFrames.length);
           
-          // Get final reps from detector
           const finalReps = detector.getReps ? detector.getReps() : [];
-          console.log('Total reps detected:', finalReps.length);
+          const actualDuration = video.duration;
           
-          // Get actual video duration
-          const actualDuration = video.duration && isFinite(video.duration) ? video.duration : video.currentTime;
-          console.log('Video duration:', actualDuration, 'seconds');
+          // Calculate actual FPS based on frames collected
+          const actualFPS = this.processedFrames.length / actualDuration;
+          console.log(`Collected ${this.processedFrames.length} frames over ${actualDuration.toFixed(2)}s = ${actualFPS.toFixed(2)} fps`);
           
-          // Create video from collected frames
           console.log('Creating video from', this.processedFrames.length, 'frames...');
-          const videoBlob = await this.createVideoFromFrames(this.processedFrames, 30);
-          console.log('Created video blob:', videoBlob.size, 'bytes');
-          
-          clearTimeout(safetyTimeout);
-          console.log('Processing complete - Reps:', finalReps.length, 'Duration:', actualDuration);
-          const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
-          resolve(result);
+          this.createVideoFromFrames(this.processedFrames, actualFPS, actualDuration).then(videoBlob => {
+            console.log('Created video blob:', videoBlob.size, 'bytes');
+            clearTimeout(safetyTimeout);
+            const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
+            resolve(result);
+          });
           return;
         }
-
-        // Skip if already processing a frame (wait for MediaPipe)
-        if (isProcessingFrame) {
-          setTimeout(() => processFrame(), 10);
-          return;
-        }
-
-        isProcessingFrame = true;
-        frameCount++;
-        
-        // Seek to next frame (30fps)
-        const targetTime = frameCount / 30;
-        video.currentTime = Math.min(targetTime, video.duration);
-        
-        // Wait for video to seek
-        await new Promise<void>((resolveSeeked) => {
-          const onSeeked = () => {
-            video.removeEventListener('seeked', onSeeked);
-            resolveSeeked();
-          };
-          video.addEventListener('seeked', onSeeked);
-          setTimeout(() => {
-            video.removeEventListener('seeked', onSeeked);
-            resolveSeeked();
-          }, 100);
-        });
 
         const currentTime = video.currentTime;
-        const progress = Math.min((currentTime / video.duration) * 100, 99);
-
-        if (frameCount === 1) {
-          console.log('Processing first frame');
-        }
         
-        if (frameCount % 30 === 0) {
-          console.log('Frame:', frameCount, '/', totalFrames, 'Time:', currentTime.toFixed(2), '/', video.duration.toFixed(2), 'Progress:', progress.toFixed(1) + '%', 'Reps:', detector.getReps ? detector.getReps().length : 0, 'Stored frames:', this.processedFrames.length);
-        }
-
-        // Draw video frame to canvas
-        this.ctx!.drawImage(video, 0, 0, this.canvas!.width, this.canvas!.height);
-
-        // Process with MediaPipe and WAIT for result
-        if (this.pose) {
-          try {
-            await this.pose.send({ image: video });
-            // Wait a bit for onResults to be called
-            await new Promise(resolve => setTimeout(resolve, 50));
-          } catch (err) {
-            console.error('MediaPipe processing error:', err);
+        // Throttle to 30fps and wait for previous frame to finish processing
+        if (!isProcessing && currentTime - lastProcessTime >= (1 / targetFPS) - 0.001) {
+          isProcessing = true;
+          lastProcessTime = currentTime;
+          frameCount++;
+          
+          const progress = Math.min((currentTime / video.duration) * 100, 99);
+          
+          if (frameCount % 30 === 0) {
+            console.log('Frame:', frameCount, 'Time:', currentTime.toFixed(2), 'Progress:', progress.toFixed(1) + '%', 'Reps:', detector.getReps ? detector.getReps().length : 0);
           }
-        }
 
-        // Send progress update
-        const currentReps = detector.getReps ? detector.getReps() : [];
-        const correctCount = currentReps.filter((r: any) => r.correct === 'True' || r.correct === true).length;
-        const currentAngle = detector.getCurrentAngle ? detector.getCurrentAngle() : undefined;
-        const dipTime = detector.getDipTime ? detector.getDipTime(currentTime) : 0;
-        
-        const metrics = {
-          correctCount,
-          incorrectCount: currentReps.length - correctCount,
-          minAngle: currentAngle,
-          currentTime: currentTime,
-          dipTime: dipTime
-        };
-        
-        // Send progress updates with skeleton-annotated frame
-        if (frameCount % 5 === 0) {
-          onProgress(progress, lastCapturedFrame || '', currentReps.length, metrics);
-        }
+          // Draw video frame to canvas (like Python's frame processing)
+          this.ctx!.drawImage(video, 0, 0, this.canvas!.width, this.canvas!.height);
 
-        isProcessingFrame = false;
+          // Process with MediaPipe and WAIT for result
+          if (this.pose) {
+            try {
+              const currentPoseCount = poseResultsReceived;
+              await this.pose.send({ image: video });
+              
+              // Wait for onResults to be called (max 100ms)
+              let waitCount = 0;
+              while (poseResultsReceived === currentPoseCount && waitCount < 10) {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                waitCount++;
+              }
+            } catch (err) {
+              console.error('MediaPipe processing error:', err);
+            }
+          }
+
+          // Send progress update
+          const currentReps = detector.getReps ? detector.getReps() : [];
+          const correctCount = currentReps.filter((r: any) => r.correct === 'True' || r.correct === true).length;
+          const currentAngle = detector.getCurrentAngle ? detector.getCurrentAngle() : undefined;
+          const dipTime = detector.getDipTime ? detector.getDipTime(currentTime) : 0;
+          
+          const metrics = {
+            correctCount,
+            incorrectCount: currentReps.length - correctCount,
+            minAngle: currentAngle,
+            currentTime: currentTime,
+            dipTime: dipTime
+          };
+          
+          if (frameCount % 5 === 0) {
+            onProgress(progress, lastCapturedFrame || '', currentReps.length, metrics);
+          }
+          
+          isProcessing = false;
+        }
         
-        // Continue to next frame immediately (no delay - process as fast as possible)
-        processFrame();
+        requestAnimationFrame(processFrame);
       };
 
-      let lastCapturedFrame = '';
-      let isDrawing = false; // Prevent overlapping draws
-      
-      this.pose!.onResults((results: Results) => {
+      this.pose!.onResults((results: any) => {
         poseResultsReceived++;
         
         if (poseResultsReceived === 1) {
           console.log('✅ First pose result received');
           console.log('Detector type:', detector.constructor.name);
           console.log('Activity:', activityName);
+          console.log('Canvas:', this.canvas?.width, 'x', this.canvas?.height);
         }
         
-        // Skip if already drawing (prevents backlog)
-        if (isDrawing) {
-          return;
+        if (poseResultsReceived % 30 === 0) {
+          console.log(`Pose results: ${poseResultsReceived}, Frames stored: ${this.processedFrames.length}`);
         }
-        
-        isDrawing = true;
         
         // Process with video detector
         let reps: any[] = [];
@@ -469,7 +448,7 @@ class MediaPipeProcessor {
           dipTime
         );
         
-        // Capture frame AFTER drawing skeleton (for preview - every 10th frame)
+        // Capture frame for preview (every 10th frame)
         if (poseResultsReceived % 10 === 0 || poseResultsReceived === 1) {
           try {
             lastCapturedFrame = this.canvas!.toDataURL('image/jpeg', 0.5);
@@ -478,17 +457,11 @@ class MediaPipeProcessor {
           }
         }
         
-        // Store processed frame for video creation
+        // Store frame for video output
         if (this.ctx && this.canvas) {
-          try {
-            const frameData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-            this.processedFrames.push(frameData);
-          } catch (err) {
-            console.error('Error storing frame:', err);
-          }
+          const frameData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+          this.processedFrames.push(frameData);
         }
-        
-        isDrawing = false;
       });
 
       video.onerror = (e) => {
@@ -512,7 +485,7 @@ class MediaPipeProcessor {
       };
       
       // Start processing loop (will wait for canvas to be ready)
-      processFrame();
+      requestAnimationFrame(processFrame);
       
       // Safety timeout - if processing takes too long, force completion
       const maxProcessingTime = Math.max((video.duration || 60) * 5000, 300000); // 5x video duration or 5 minutes minimum
@@ -525,8 +498,12 @@ class MediaPipeProcessor {
         
         console.log('Timeout triggered - Reps:', finalReps.length, 'Duration:', actualDuration, 'Frames:', this.processedFrames.length);
         
-        // Create video from collected frames
-        this.createVideoFromFrames(this.processedFrames, 30).then(videoBlob => {
+        // Calculate actual FPS based on frames collected
+        const actualFPS = this.processedFrames.length / actualDuration;
+        console.log(`Using actual FPS: ${actualFPS.toFixed(2)} fps`);
+        
+        // Create video from collected frames at actual FPS
+        this.createVideoFromFrames(this.processedFrames, actualFPS, actualDuration).then(videoBlob => {
           const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
           resolve(result);
         }).catch(err => {
@@ -547,74 +524,74 @@ class MediaPipeProcessor {
 
     // Draw landmarks and connections (EXACTLY like Python with mp_draw)
     if (results.poseLandmarks) {
-      // Draw connections in cyan/blue like Python
+      // Draw connections in cyan/blue
       mp.drawConnectors(this.ctx, results.poseLandmarks, mp.POSE_CONNECTIONS, {
         color: '#00FFFF',
-        lineWidth: 2
+        lineWidth: 1.5
       });
-      // Draw landmarks in white/cyan like Python
+      // Draw landmarks in white/cyan
       mp.drawLandmarks(this.ctx, results.poseLandmarks, {
         color: '#FFFFFF',
         fillColor: '#00FFFF',
-        radius: 3
+        radius: 2
       });
     }
 
-    // Draw metrics overlay EXACTLY matching Python script
-    this.ctx.font = 'bold 28px Arial';
-    this.ctx.lineWidth = 3;
+    // Draw metrics overlay with good visibility
+    this.ctx.font = 'bold 20px Arial';
+    this.ctx.lineWidth = 2.5;
     this.ctx.strokeStyle = '#000000';
     
-    // 1. Angle display (Green) - Position: (10, 30)
+    // 1. Angle display (Green) - Position: (10, 25)
     if (currentAngle !== undefined) {
       this.ctx.fillStyle = '#00FF00';
-      const angleText = `Elbow: ${Math.round(currentAngle)}`;
-      this.ctx.strokeText(angleText, 10, 30);
-      this.ctx.fillText(angleText, 10, 30);
+      const angleText = `Elbow: ${Math.round(currentAngle)}°`;
+      this.ctx.strokeText(angleText, 10, 25);
+      this.ctx.fillText(angleText, 10, 25);
     }
     
-    // 2. Rep counter (Cyan) - Position: (10, 60)
+    // 2. Rep counter (Cyan) - Position: (10, 50)
     this.ctx.fillStyle = '#00FFFF';
     const repText = `${activityName}: ${repCount}`;
-    this.ctx.strokeText(repText, 10, 60);
-    this.ctx.fillText(repText, 10, 60);
+    this.ctx.strokeText(repText, 10, 50);
+    this.ctx.fillText(repText, 10, 50);
     
-    // 3. State (Yellow/Green based on state) - Position: (10, 95)
+    // 3. State (Yellow/Green based on state) - Position: (10, 75)
     this.ctx.fillStyle = state === 'down' ? '#00FF00' : '#C8C800';
     const stateText = `State: ${state}`;
-    this.ctx.strokeText(stateText, 10, 95);
-    this.ctx.fillText(stateText, 10, 95);
+    this.ctx.strokeText(stateText, 10, 75);
+    this.ctx.fillText(stateText, 10, 75);
     
-    // 4. Dip time (Red) - Position: (10, 130) - ONLY show during down state
+    // 4. Dip time (Red) - Position: (10, 100) - ONLY show during down state
     if (dipTime !== undefined && dipTime > 0) {
       this.ctx.fillStyle = '#FF0000';
-      const dipText = `Dip: ${dipTime.toFixed(3)}s`;
-      this.ctx.strokeText(dipText, 10, 130);
-      this.ctx.fillText(dipText, 10, 130);
+      const dipText = `Dip: ${dipTime.toFixed(2)}s`;
+      this.ctx.strokeText(dipText, 10, 100);
+      this.ctx.fillText(dipText, 10, 100);
     }
     
-    // 5. Correct count (Green) - Position: (10, 160)
+    // 5. Correct count (Green) - Position: (10, 125)
     if (correctCount !== undefined) {
       this.ctx.fillStyle = '#00FF00';
       const correctText = `Correct: ${correctCount}`;
-      this.ctx.strokeText(correctText, 10, 160);
-      this.ctx.fillText(correctText, 10, 160);
+      this.ctx.strokeText(correctText, 10, 125);
+      this.ctx.fillText(correctText, 10, 125);
     }
     
-    // 6. Bad count (Red) - Position: (10, 190)
+    // 6. Bad count (Red) - Position: (10, 150)
     if (incorrectCount !== undefined) {
-      this.ctx.fillStyle = '#0000FF'; // Blue-ish red (BGR in Python = RGB here)
+      this.ctx.fillStyle = '#0000FF';
       const incorrectText = `Bad: ${incorrectCount}`;
-      this.ctx.strokeText(incorrectText, 10, 190);
-      this.ctx.fillText(incorrectText, 10, 190);
+      this.ctx.strokeText(incorrectText, 10, 150);
+      this.ctx.fillText(incorrectText, 10, 150);
     }
     
-    // 7. Time (Yellow) - Position: (10, 220)
+    // 7. Time (Yellow) - Position: (10, 175)
     if (currentTime !== undefined) {
       this.ctx.fillStyle = '#FFFF00';
       const timeText = `Time: ${currentTime.toFixed(1)}s`;
-      this.ctx.strokeText(timeText, 10, 220);
-      this.ctx.fillText(timeText, 10, 220);
+      this.ctx.strokeText(timeText, 10, 175);
+      this.ctx.fillText(timeText, 10, 175);
     }
   }
 
@@ -707,7 +684,7 @@ class MediaPipeProcessor {
     let frameCount = 0;
 
     // Setup pose results handler FIRST
-    this.pose!.onResults((results: Results) => {
+    this.pose!.onResults((results: any) => {
       // Draw video frame first
       if (this.ctx && this.canvas) {
         this.ctx.drawImage(videoElement, 0, 0, this.canvas.width, this.canvas.height);

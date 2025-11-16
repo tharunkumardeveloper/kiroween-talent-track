@@ -43,7 +43,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
   const [processingMessage, setProcessingMessage] = useState('Analyzing your workout...');
   const [useBackend, setUseBackend] = useState(false); // ALWAYS use browser processing (serverless)
   const [outputId, setOutputId] = useState<string>('');
-  
+
   // Force browser-only mode in production
   const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
@@ -74,7 +74,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
     setCurrentReps(0);
     setCurrentMetrics(null);
     setProcessingMessage('Analyzing your workout...');
-    
+
     if (videoFile) {
       processVideo(videoFile);
     } else {
@@ -84,7 +84,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
         onBack();
       }, 1000);
     }
-    
+
     // Cleanup on unmount
     return cleanup;
   }, [videoFile, liveResults]);
@@ -122,7 +122,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
       setProcessingMessage('Uploading to server...');
       console.log('Using Python backend for:', activityName);
       console.log('Backend URL:', backendProcessor['baseUrl']);
-      
+
       const result = await backendProcessor.processVideo(
         file,
         activityName,
@@ -135,26 +135,26 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
 
       console.log('Backend result:', result);
       setProgress(100);
-      
+
       // Store output ID for frame player
       setOutputId(result.outputId);
-      
+
       // Get video URL
       const newVideoUrl = result.videoFile
         ? backendProcessor.getVideoUrl(result.outputId, result.videoFile)
         : '';
-      
+
       // Revoke old video URL before setting new one
       if (videoUrl && videoUrl !== newVideoUrl) {
         URL.revokeObjectURL(videoUrl);
       }
-      
+
       setVideoUrl(newVideoUrl);
 
       // Parse CSV data
       const csvData = result.csvData || [];
       const totalReps = csvData.length;
-      const correctReps = csvData.filter((row: any) => 
+      const correctReps = csvData.filter((row: any) =>
         row.correct === 'True' || row.correct === true || row.correct === '1'
       ).length;
 
@@ -223,14 +223,14 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
       setProcessingMessage('Loading MediaPipe AI models...');
       console.log('Starting browser-based video processing for:', activityName);
       console.log('Video file:', file.name, file.size, 'bytes', file.type);
-      
+
       // Validate video file
       if (!file.type.startsWith('video/')) {
         throw new Error('Invalid file type. Please upload a video file.');
       }
-      
+
       setProcessingMessage('Analyzing your workout...');
-      
+
       // Process video with MediaPipe in browser
       const processingResult = await mediapipeProcessor.processVideo(
         file,
@@ -245,24 +245,24 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
           setCurrentMetrics(metrics || null);
         }
       );
-      
+
       console.log('Processing complete:', processingResult);
 
       setProgress(100);
       setProcessingMessage('Processing complete!');
 
       // Create video URL from blob
-      const newVideoUrl = processingResult.videoBlob 
+      const newVideoUrl = processingResult.videoBlob
         ? URL.createObjectURL(processingResult.videoBlob)
         : '';
-      
+
       console.log('Created video URL:', newVideoUrl, 'Blob size:', processingResult.videoBlob?.size);
-      
+
       // Revoke old video URL before setting new one
       if (videoUrl && videoUrl !== newVideoUrl) {
         URL.revokeObjectURL(videoUrl);
       }
-      
+
       setVideoUrl(newVideoUrl);
 
       const formatDuration = (seconds: number): string => {
@@ -278,7 +278,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
 
       // Determine result type based on processing results
       const resultType: 'good' | 'bad' = processingResult.posture === 'Good' ? 'good' : 'bad';
-      
+
       const processedResult: ProcessingResult = {
         type: resultType,
         posture: processingResult.posture,
@@ -302,11 +302,11 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
       console.error('Error stack:', error.stack);
       setIsProcessing(false);
       setLiveFrame('');
-      
+
       // Show specific error message
       const errorMessage = error.message || "Failed to process video. Please try again.";
       toast.error(errorMessage);
-      
+
       // Give user option to retry
       setTimeout(() => {
         onRetry();
@@ -375,7 +375,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                 </div>
                 <div className="text-2xl font-bold text-primary">{Math.round(progress)}%</div>
               </div>
-              
+
               <Progress value={progress} className="h-3" />
 
               {/* Processing Steps */}
@@ -418,9 +418,9 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                  <img 
-                    src={liveFrame} 
-                    alt="Processing frame" 
+                  <img
+                    src={liveFrame}
+                    alt="Processing frame"
                     className="w-full h-full object-contain"
                   />
                 </div>
@@ -449,21 +449,21 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                     {activityName.includes('Jump') ? 'Jumps' : 'Reps'} Detected
                   </p>
                 </div>
-                
+
                 <div className="text-center p-3 rounded-lg bg-secondary/30">
                   <div className="text-2xl font-bold mb-1">
                     {currentMetrics?.correctCount !== undefined ? currentMetrics.correctCount : '...'}
                   </div>
                   <p className="text-xs text-muted-foreground">Correct Form</p>
                 </div>
-                
+
                 {currentMetrics?.minAngle && (
                   <div className="text-center p-3 rounded-lg bg-secondary/30">
                     <div className="text-2xl font-bold mb-1">{Math.round(currentMetrics.minAngle)}°</div>
                     <p className="text-xs text-muted-foreground">Min Angle</p>
                   </div>
                 )}
-                
+
                 {currentMetrics?.currentTime && (
                   <div className="text-center p-3 rounded-lg bg-secondary/30">
                     <div className="text-2xl font-bold mb-1">{currentMetrics.currentTime.toFixed(1)}s</div>
@@ -471,7 +471,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                   </div>
                 )}
               </div>
-              
+
               {progress < 100 && (
                 <p className="text-xs text-center text-muted-foreground mt-3">
                   ⏳ Metrics updating in real-time...
@@ -502,7 +502,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
             <Shield className="w-16 h-16 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-4 text-destructive">🚨 Anomaly Detected</h2>
             <p className="text-muted-foreground mb-6">{result.message}</p>
-            
+
             <div className="space-y-3">
               <Button onClick={onRetry} variant="outline" className="w-full">
                 <Upload className="w-4 h-4 mr-2" />
@@ -518,8 +518,8 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
     );
   }
 
-  // Results Screen (for good/bad/poor results)
-  if (result && (result.type === 'good' || result.type === 'bad' || result.type === 'poor')) {
+  // Results Screen (for good/bad results)
+  if (result && (result.type === 'good' || result.type === 'bad')) {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
@@ -551,23 +551,23 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                 <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
                   {outputId && result.videoUrl ? (
                     <>
-                      <FramePlayer 
+                      <FramePlayer
                         outputId={outputId}
                         baseUrl="http://localhost:3001"
                       />
                       {/* Fallback video player if frames don't load */}
                       <div className="hidden">
-                        <VideoPlayer 
+                        <VideoPlayer
                           key={result.videoUrl}
-                          src={result.videoUrl} 
+                          src={result.videoUrl}
                           className="w-full h-full"
                         />
                       </div>
                     </>
                   ) : result.videoUrl ? (
-                    <VideoPlayer 
+                    <VideoPlayer
                       key={result.videoUrl}
-                      src={result.videoUrl} 
+                      src={result.videoUrl}
                       className="w-full h-full"
                     />
                   ) : (
@@ -575,7 +575,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                       <p>Video not available</p>
                     </div>
                   )}
-                  <div className="absolute top-2 left-2 bg-primary/90 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 pointer-events-none z-10">
+                  <div className="absolute top-2 right-2 bg-primary/90 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 pointer-events-none z-10">
                     <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                     <span>AI Processed</span>
                   </div>
@@ -683,7 +683,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                     <p className="text-xs text-muted-foreground">Posture</p>
                   </div>
                 )}
-                
+
                 {result.setsCompleted !== undefined && (
                   <div className="text-center p-3 rounded-lg bg-secondary/30">
                     <div className="text-2xl font-bold mb-1">{result.setsCompleted}</div>
@@ -692,14 +692,14 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                     </p>
                   </div>
                 )}
-                
+
                 {result.badSets !== undefined && result.badSets > 0 && (
                   <div className="text-center p-3 rounded-lg bg-secondary/30">
                     <div className="text-2xl font-bold mb-1">{result.badSets}</div>
                     <p className="text-xs text-muted-foreground">Incorrect</p>
                   </div>
                 )}
-                
+
                 {result.duration && (
                   <div className="text-center p-3 rounded-lg bg-secondary/30">
                     <div className="text-2xl font-bold mb-1">{result.duration}</div>
@@ -747,7 +747,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
               {/* Posture Badge */}
               {result.posture && (
                 <div className="flex justify-center">
-                  <Badge 
+                  <Badge
                     className={`${result.posture === 'Good' ? 'bg-success/10 text-success border-success' : 'bg-warning/10 text-warning border-warning'}`}
                     variant="outline"
                   >

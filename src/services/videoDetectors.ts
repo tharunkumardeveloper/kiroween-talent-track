@@ -54,9 +54,9 @@ export class PushupVideoDetector {
   private angle_history: number[] = [];
   private last_rep_time: number = 0;
   
-  private readonly DOWN_ANGLE = 75;
+  private readonly DOWN_ANGLE = 90;  // More lenient angle threshold
   private readonly UP_ANGLE = 110;
-  private readonly MIN_DIP_DURATION = 0.3;  // Increased from 0.2 to prevent false positives
+  private readonly MIN_DIP_DURATION = 0.2;  // Minimum duration for valid rep
   private readonly MIN_REP_INTERVAL = 0.5;  // Minimum time between reps to prevent false positives
   private readonly SMOOTH_N = 5;  // Increased smoothing to reduce noise
 
@@ -91,12 +91,20 @@ export class PushupVideoDetector {
         const dip_duration = time - this.dip_start_time;
         const time_since_last_rep = time - this.last_rep_time;
         
-        // Validate rep: proper angle, duration, and not too fast
-        const is_valid_rep = dip_duration >= this.MIN_DIP_DURATION && 
-                            time_since_last_rep >= this.MIN_REP_INTERVAL;
-        const is_correct = this.current_dip_min_angle <= this.DOWN_ANGLE && dip_duration >= this.MIN_DIP_DURATION;
+        // Count all dips as reps (if not too fast)
+        const is_valid_rep = time_since_last_rep >= this.MIN_REP_INTERVAL;
         
-        // Only count if valid
+        // Mark as correct if: good angle (90° or less) AND proper duration (at least 0.2s)
+        const has_good_depth = this.current_dip_min_angle <= this.DOWN_ANGLE;
+        const has_good_duration = dip_duration >= this.MIN_DIP_DURATION;
+        const is_correct = has_good_depth && has_good_duration;
+        
+        const repStatus = is_correct ? '✅ CORRECT' : '❌ BAD';
+        const angleStatus = has_good_depth ? '✓' : '✗ TOO SHALLOW';
+        const durationStatus = has_good_duration ? '✓' : '✗ TOO FAST';
+        console.log(`Rep ${this.reps.length + 1} ${repStatus}: angle=${this.current_dip_min_angle.toFixed(1)}° ${angleStatus}, duration=${dip_duration.toFixed(2)}s ${durationStatus}`);
+        
+        // Count all valid dips (even if incorrect form)
         if (is_valid_rep) {
           const rep = {
             count: this.reps.length + 1,
