@@ -146,33 +146,29 @@ export class PushupVideoDetector {
   getBadCount() { return this.reps.filter(r => r.correct === false).length; }
 }
 
-// Pullup Video Detector - EXACT match to pullup_video.py
+// Pullup Video Detector - Simplified angle-based detection
 export class PullupVideoDetector {
-  private state = 'waiting';
-  private in_dip = false;
-  private dip_start_time: number | null = null;
-  private initial_head_y: number | null = null;
+  private state = 'down';
+  private in_pull = false;
+  private pull_start_time: number | null = null;
+  private current_pull_min_angle = 180;
   private reps: RepData[] = [];
   private angle_history: number[] = [];
+  private last_rep_time: number = 0;
   
-  private readonly BOTTOM_ANGLE = 160;
-  private readonly MIN_DIP = 0.1;
-  private readonly SMOOTH_N = 3;
+  private readonly UP_ANGLE = 90;  // Arms bent at top
+  private readonly DOWN_ANGLE = 140; // Arms extended at bottom
+  private readonly MIN_PULL_DURATION = 0.3;
+  private readonly MIN_REP_INTERVAL = 0.5;
+  private readonly SMOOTH_N = 5;
 
   process(landmarks: Landmark[], time: number): RepData[] {
-    const nose = landmarks[0];
     const leftShoulder = landmarks[11];
     const leftElbow = landmarks[13];
     const leftWrist = landmarks[15];
     const rightShoulder = landmarks[12];
     const rightElbow = landmarks[14];
     const rightWrist = landmarks[16];
-
-    const head_y = nose.y;
-    
-    if (this.initial_head_y === null) {
-      this.initial_head_y = head_y;
-    }
 
     const ang_l = calculateAngle(leftShoulder, leftElbow, leftWrist);
     const ang_r = calculateAngle(rightShoulder, rightElbow, rightWrist);
@@ -183,31 +179,54 @@ export class PullupVideoDetector {
       this.angle_history.shift();
     }
     
-    const smoothed_angle = this.angle_history.reduce((a, b) => a + b, 0) / this.angle_history.length;
+    const elbow_angle_sm = this.angle_history.reduce((a, b) => a + b, 0) / this.angle_history.length;
 
-    if (this.state === 'waiting' && head_y < this.initial_head_y) {
+    // State: down (hanging) -> up (pulled up) -> down
+    if (this.state === 'down' && elbow_angle_sm <= this.UP_ANGLE) {
       this.state = 'up';
-      this.in_dip = true;
-      this.dip_start_time = time;
+      this.in_pull = true;
+      this.pull_start_time = time;
+      this.current_pull_min_angle = elbow_angle_sm;
     }
-    else if (this.state === 'up') {
-      if (smoothed_angle > this.BOTTOM_ANGLE) {
-        if (head_y >= this.initial_head_y && this.in_dip && this.dip_start_time !== null) {
-          const dip_duration = time - this.dip_start_time;
-          if (dip_duration >= this.MIN_DIP) {
-            this.reps.push({
-              count: this.reps.length + 1,
-              up_time: Math.round(this.dip_start_time * 100) / 100,
-              down_time: Math.round(time * 100) / 100,
-              dip_duration_sec: Math.round(dip_duration * 100) / 100,
-              min_elbow_angle: Math.round(smoothed_angle * 100) / 100
-            });
-          }
-          this.in_dip = false;
-          this.dip_start_time = null;
-          this.state = 'waiting';
+    else if (this.state === 'up' && elbow_angle_sm >= this.DOWN_ANGLE) {
+      this.state = 'down';
+      if (this.in_pull && this.pull_start_time !== null) {
+        const pull_duration = time - this.pull_start_time;
+        const time_since_last_rep = time - this.last_rep_time;
+        
+        // Count all pulls as reps (if not too fast)
+        const is_valid_rep = time_since_last_rep >= this.MIN_REP_INTERVAL;
+        
+        // Mark as correct if: good angle (≤90°) AND proper duration (≥0.3s)
+        const has_good_pull = this.current_pull_min_angle <= this.UP_ANGLE;
+        const has_good_duration = pull_duration >= this.MIN_PULL_DURATION;
+        const is_correct = has_good_pull && has_good_duration;
+        
+        const repStatus = is_correct ? '✅ CORRECT' : '❌ BAD';
+        const angleStatus = has_good_pull ? '✓' : '✗ NOT PULLED UP ENOUGH';
+        const durationStatus = has_good_duration ? '✓' : '✗ TOO FAST';
+        console.log(`Pullup ${this.reps.length + 1} ${repStatus}: angle=${this.current_pull_min_angle.toFixed(1)}° ${angleStatus}, duration=${pull_duration.toFixed(2)}s ${durationStatus}`);
+        
+        if (is_valid_rep) {
+          this.reps.push({
+            count: this.reps.length + 1,
+            up_time: Math.round(this.pull_start_time * 1000) / 1000,
+            down_time: Math.round(time * 1000) / 1000,
+            dip_duration_sec: Math.round(pull_duration * 1000) / 1000,
+            min_elbow_angle: Math.round(this.current_pull_min_angle * 100) / 100,
+            correct: is_correct
+          });
+          this.last_rep_time = time;
         }
+        
+        this.in_pull = false;
+        this.pull_start_time = null;
+        this.current_pull_min_angle = 180;
       }
+    }
+
+    if (this.in_pull && elbow_angle_sm < this.current_pull_min_angle) {
+      this.current_pull_min_angle = elbow_angle_sm;
     }
 
     return this.reps;
@@ -220,7 +239,7 @@ export class PullupVideoDetector {
       : 0;
   }
   getDipTime(currentTime: number) { 
-    return (this.in_dip && this.dip_start_time !== null) ? currentTime - this.dip_start_time : 0; 
+    return (this.in_pull && this.pull_start_time !== null) ? currentTime - this.pull_start_time : 0; 
   }
   getReps() { return this.reps; }
   getCorrectCount() { return this.reps.filter(r => r.correct === true).length; }
