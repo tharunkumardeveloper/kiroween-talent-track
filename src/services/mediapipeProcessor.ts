@@ -114,9 +114,9 @@ class MediaPipeProcessor {
 
     this.pose.setOptions({
       modelComplexity: 1, // Match Python: model_complexity=1
-      smoothLandmarks: true,
+      smoothLandmarks: true, // Keep smooth for better tracking
       enableSegmentation: false,
-      smoothSegmentation: false,
+      smoothSegmentation: false, // Disable for frame-by-frame processing
       minDetectionConfidence: 0.5, // Match Python: min_detection_confidence=0.5
       minTrackingConfidence: 0.5
     });
@@ -286,36 +286,13 @@ class MediaPipeProcessor {
         // Don't use MediaRecorder - we'll collect frames and create video at the end
         this.processedFrames = [];
         console.log('Starting video processing (frame-by-frame)...');
-
-        // Use normal playback rate for smooth processing
-        // The browser will naturally throttle to ~30fps which is perfect
-        video.playbackRate = 1.0;
-        video.currentTime = 0;
-        processingStarted = true;
-
-        // Process every frame for accurate output
-        skipEveryNFrames = 1;
-
         console.log(`📹 Video duration: ${video.duration.toFixed(1)}s`);
-        console.log(`⚡ Processing at normal speed with 30fps target`);
+        console.log(`⚡ Processing every frame at ${originalFPS}fps for maximum accuracy`);
 
-        // Start playing
-        video.play().then(() => {
-          console.log('✅ Video playback started successfully');
-        }).catch(err => {
-          console.error('❌ Error playing video:', err);
-          console.error('This might be due to browser autoplay restrictions');
-          reject(new Error('Failed to play video: ' + err.message));
-        });
-      };
-
-      video.onplay = () => {
-        console.log('Video is now playing');
-      };
-
-      video.onended = () => {
-        console.log('Video playback ended naturally');
-        // Don't do anything here - let processFrame handle it
+        // CRITICAL: Manual frame-by-frame processing for consistent behavior across all devices
+        // This ensures mobile gets the same accuracy as desktop
+        processingStarted = true;
+        processVideoFrameByFrame();
       };
 
       video.onerror = (e) => {
@@ -326,110 +303,96 @@ class MediaPipeProcessor {
       let lastCapturedFrame = '';
       let safetyTimeout: NodeJS.Timeout;
       let processingStarted = false;
-      let lastProcessTime = -1;
-      let isProcessing = false;
-      const targetFPS = 30;
       
-      // For very long videos (>2 min), process every other frame to speed up
-      // This is safe because reps take multiple frames
-      let frameSkipCounter = 0;
-      let skipEveryNFrames = 1; // Process every frame by default
-
-      // Process frames as video plays naturally (like Python's cap.read())
-      const processFrame = async () => {
-        // Check for cancellation
-        if (this.cancelProcessing) {
-          console.log('⚠️ Processing cancelled by user');
-          video.pause();
-          clearTimeout(safetyTimeout);
-          reject(new Error('Processing cancelled'));
-          return;
-        }
+      // Manual frame-by-frame processing - GUARANTEED same behavior on all devices
+      const processVideoFrameByFrame = async () => {
+        console.log('🎬 Starting manual frame-by-frame processing...');
         
-        if (!this.canvas || !this.ctx || !processingStarted) {
-          requestAnimationFrame(processFrame);
-          return;
-        }
+        const frameInterval = 1 / originalFPS; // Time between frames
+        let currentFrameIndex = 0;
+        const totalFramesToProcess = Math.floor(video.duration * originalFPS);
+        
+        console.log(`Will process ${totalFramesToProcess} frames (${originalFPS}fps × ${video.duration.toFixed(2)}s)`);
 
-        // Check if video ended
-        if (video.ended || video.currentTime >= video.duration) {
-          console.log('✅ Video processing complete!');
-          console.log('  Video duration:', video.duration.toFixed(2), 'seconds');
-          console.log('  Frames collected:', this.processedFrames.length);
-          console.log('  Expected frames:', Math.floor(video.duration * originalFPS));
-          console.log('  Frame rate:', (this.processedFrames.length / video.duration).toFixed(2), 'fps');
-
-          const finalReps = detector.getReps ? detector.getReps() : [];
-          const actualDuration = video.duration;
-
-          // Verify we have enough frames
-          const minExpectedFrames = Math.floor(video.duration * 15); // At least 15fps
-          if (this.processedFrames.length < minExpectedFrames) {
-            console.warn(`⚠️ Only collected ${this.processedFrames.length} frames, expected at least ${minExpectedFrames}`);
+        // Process each frame sequentially
+        for (let i = 0; i < totalFramesToProcess; i++) {
+          // Check for cancellation
+          if (this.cancelProcessing) {
+            console.log('⚠️ Processing cancelled by user');
+            reject(new Error('Processing cancelled'));
+            return;
           }
 
-          // CRITICAL: Calculate the exact playback FPS needed to match original duration
-          // If we collected 250 frames over 10 seconds, we need to play at 25fps to get 10s duration
-          const playbackFPS = this.processedFrames.length / actualDuration;
+          const targetTime = i * frameInterval;
           
-          console.log(`📹 Original video: ${actualDuration.toFixed(2)}s`);
-          console.log(`📊 Frames collected: ${this.processedFrames.length}`);
-          console.log(`🎬 Playback FPS: ${playbackFPS.toFixed(2)} (${this.processedFrames.length} frames ÷ ${actualDuration.toFixed(2)}s)`);
-          console.log(`⚡ Output duration will be: ${actualDuration.toFixed(2)}s (matches original)`);
-
-          console.log('Creating video from', this.processedFrames.length, 'frames...');
-          // Use playbackFPS for encoding, and actualDuration for metadata
-          this.createVideoFromFrames(this.processedFrames, playbackFPS, actualDuration).then(videoBlob => {
-            console.log('✅ Created video blob:', videoBlob.size, 'bytes');
-            clearTimeout(safetyTimeout);
-            const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
-            resolve(result);
+          // Seek to exact frame time
+          video.currentTime = targetTime;
+          
+          // Wait for seek to complete
+          await new Promise<void>((seekResolve) => {
+            const checkSeek = () => {
+              if (Math.abs(video.currentTime - targetTime) < 0.001 || video.readyState >= 2) {
+                seekResolve();
+              } else {
+                setTimeout(checkSeek, 5);
+              }
+            };
+            checkSeek();
           });
-          return;
-        }
 
-        const currentTime = video.currentTime;
-
-        // Process frames at target FPS (30fps) for smooth output
-        const timeSinceLastFrame = currentTime - lastProcessTime;
-        const minFrameTime = 1 / targetFPS;
-        
-        if (!isProcessing && timeSinceLastFrame >= minFrameTime) {
-          isProcessing = true;
-          lastProcessTime = currentTime;
           frameCount++;
+          const progress = Math.min((i / totalFramesToProcess) * 100, 99);
 
-          const progress = Math.min((currentTime / video.duration) * 100, 99);
-
-          if (frameCount % 30 === 0) {
-            console.log('Frame:', frameCount, 'Time:', currentTime.toFixed(2), 'Progress:', progress.toFixed(1) + '%', 'Reps:', detector.getReps ? detector.getReps().length : 0);
+          if (frameCount % 10 === 0) {
+            console.log(`Frame: ${frameCount}/${totalFramesToProcess}, Time: ${targetTime.toFixed(2)}s, Progress: ${progress.toFixed(1)}%, Reps: ${detector.getReps ? detector.getReps().length : 0}`);
           }
 
-          // Draw video frame to canvas (like Python's frame processing)
+          // Draw current frame to canvas
           this.ctx!.drawImage(video, 0, 0, this.canvas!.width, this.canvas!.height);
 
-          // Process with MediaPipe - send and continue (don't wait)
-          if (this.pose) {
-            try {
-              // Send frame to MediaPipe (async, non-blocking)
-              this.pose.send({ image: video }).catch((err: any) => {
-                console.error('MediaPipe processing error:', err);
-              });
-            } catch (err) {
-              console.error('MediaPipe send error:', err);
-            }
+          // CRITICAL: Process frame with MediaPipe and WAIT for result
+          let resultReceived = false;
+          
+          // Setup one-time result handler for this specific frame
+          const frameResultPromise = new Promise<void>((resultResolve) => {
+            const originalHandler = this.pose!.onResults;
+            
+            this.pose!.onResults = (results: any) => {
+              // Call original handler to process and draw
+              originalHandler.call(this.pose, results);
+              resultReceived = true;
+              resultResolve();
+            };
+          });
+
+          // Send frame to MediaPipe
+          try {
+            await this.pose!.send({ image: video });
+            
+            // Wait for result with adaptive timeout
+            // Desktop: ~50ms per frame, Mobile: up to 300ms per frame
+            const timeoutMs = 300;
+            const timeoutPromise = new Promise<void>((_, timeoutReject) => {
+              setTimeout(() => timeoutReject(new Error('timeout')), timeoutMs);
+            });
+            
+            await Promise.race([frameResultPromise, timeoutPromise]).catch(() => {
+              if (!resultReceived) {
+                console.warn(`Frame ${frameCount}: MediaPipe timeout after ${timeoutMs}ms`);
+              }
+            });
+            
+          } catch (err) {
+            console.error(`Frame ${frameCount} processing error:`, err);
           }
 
-          // Send progress update
+          // Update progress
           const currentReps = detector.getReps ? detector.getReps() : [];
           const correctCount = currentReps.filter((r: any) => r.correct === 'True' || r.correct === true).length;
           const currentAngle = detector.getCurrentAngle ? detector.getCurrentAngle() : undefined;
-          const dipTime = detector.getDipTime ? detector.getDipTime(currentTime) : 0;
-
-          // Get jump metrics for vertical jump activities
+          const dipTime = detector.getDipTime ? detector.getDipTime(targetTime) : 0;
           const maxJumpHeight = (detector as any).getMaxJumpHeight ? (detector as any).getMaxJumpHeight() : undefined;
           
-          // Calculate average jump height
           let avgJumpHeight = undefined;
           if (currentReps.length > 0) {
             const heights = currentReps
@@ -444,19 +407,50 @@ class MediaPipeProcessor {
             correctCount,
             incorrectCount: currentReps.length - correctCount,
             minAngle: currentAngle,
-            currentTime: currentTime,
+            currentTime: targetTime,
             dipTime: dipTime,
             maxJumpHeight: maxJumpHeight,
             avgJumpHeight: avgJumpHeight
           };
 
-          // Send progress update every 3 frames (more frequent updates)
-          if (frameCount % 3 === 0) {
+          // Send progress update every 5 frames for smoother UI
+          if (frameCount % 5 === 0) {
+            // Capture frame for preview
+            try {
+              lastCapturedFrame = this.canvas!.toDataURL('image/jpeg', 0.6);
+            } catch (err) {
+              console.error('Error capturing frame:', err);
+            }
             onProgress(progress, lastCapturedFrame || '', currentReps.length, metrics);
           }
         }
 
-        requestAnimationFrame(processFrame);
+        // All frames processed
+        console.log('✅ Video processing complete!');
+        console.log('  Video duration:', video.duration.toFixed(2), 'seconds');
+        console.log('  Frames collected:', this.processedFrames.length);
+        console.log('  Expected frames:', totalFramesToProcess);
+        console.log('  Frame rate:', (this.processedFrames.length / video.duration).toFixed(2), 'fps');
+
+        const finalReps = detector.getReps ? detector.getReps() : [];
+        const actualDuration = video.duration;
+
+        // Calculate playback FPS
+        const playbackFPS = this.processedFrames.length / actualDuration;
+        
+        console.log(`📹 Original video: ${actualDuration.toFixed(2)}s`);
+        console.log(`📊 Frames collected: ${this.processedFrames.length}`);
+        console.log(`🎬 Playback FPS: ${playbackFPS.toFixed(2)}`);
+
+        console.log('Creating video from', this.processedFrames.length, 'frames...');
+        this.createVideoFromFrames(this.processedFrames, playbackFPS, actualDuration).then(videoBlob => {
+          console.log('✅ Created video blob:', videoBlob.size, 'bytes');
+          const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
+          resolve(result);
+        }).catch(err => {
+          console.error('Error creating video:', err);
+          reject(err);
+        });
       };
 
       this.pose!.onResults((results: any) => {
@@ -567,9 +561,6 @@ class MediaPipeProcessor {
             console.log(`✅ Stored ${this.processedFrames.length} frames with pose data`);
           }
         }
-        
-        // Mark processing as complete for this frame
-        isProcessing = false;
       });
 
       video.onerror = (e) => {
@@ -591,9 +582,6 @@ class MediaPipeProcessor {
         clearTimeout(timeout);
         originalResolve(result);
       };
-
-      // Start processing loop (will wait for canvas to be ready)
-      requestAnimationFrame(processFrame);
 
       // Safety timeout - if processing takes too long, force completion
       const maxProcessingTime = Math.max((video.duration || 60) * 5000, 300000); // 5x video duration or 5 minutes minimum
@@ -900,14 +888,17 @@ class MediaPipeProcessor {
       });
     });
 
-    // Processing loop - PROCESS EVERY FRAME for accuracy
+    // Processing loop - GUARANTEED frame-by-frame processing
     let lastFrameTime = 0;
-    const targetFrameTime = 1000 / 30; // 30fps max
+    const targetFrameTime = 1000 / 30; // 30fps target
     let processingFrame = false;
+    let framesSent = 0;
+    let lastResultCount = 0;
 
     const processFrame = async (currentTime: number) => {
       if (!isProcessing || !videoElement || videoElement.readyState < 2) {
         if (!isProcessing) {
+          console.log(`Live processing complete: ${framesSent} frames sent`);
           onComplete();
         }
         return;
@@ -920,14 +911,31 @@ class MediaPipeProcessor {
         processingFrame = true;
         lastFrameTime = currentTime;
         frameCount++;
+        framesSent++;
+        
+        const currentResultCount = lastResultCount;
 
         try {
           // CRITICAL: Wait for MediaPipe to finish processing this frame
           // This ensures every frame is analyzed, even on slow devices
           await this.pose!.send({ image: videoElement });
           
-          // Small delay to ensure onResults callback completes
-          await new Promise(resolve => setTimeout(resolve, 10));
+          // Wait for onResults to be called (up to 150ms for slow devices)
+          let waitCount = 0;
+          while (lastResultCount === currentResultCount && waitCount < 15) {
+            await new Promise(resolve => setTimeout(resolve, 10));
+            waitCount++;
+          }
+          
+          if (lastResultCount === currentResultCount) {
+            console.warn(`Frame ${frameCount}: onResults not called after 150ms`);
+          }
+          
+          // Log every 30 frames
+          if (frameCount % 30 === 0) {
+            const reps = detector.getReps ? detector.getReps().length : 0;
+            console.log(`Live: ${frameCount} frames processed, ${reps} reps detected`);
+          }
         } catch (error) {
           console.error('MediaPipe processing error:', error);
         }
@@ -936,6 +944,13 @@ class MediaPipeProcessor {
       }
 
       requestAnimationFrame(processFrame);
+    };
+
+    // Track when onResults is called
+    const originalOnResultsHandler = this.pose!.onResults.bind(this.pose);
+    this.pose!.onResults = (results: any) => {
+      lastResultCount++;
+      originalOnResultsHandler(results);
     };
 
     // Start processing
