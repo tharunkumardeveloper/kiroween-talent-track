@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -386,12 +386,17 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       }
 
-      // Start recording canvas
+      // Start recording canvas at 30fps for better performance
       const canvasStream = canvas.captureStream(30);
 
+      // Use VP8 for better mobile compatibility and performance
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') 
+        ? 'video/webm;codecs=vp8'
+        : 'video/webm';
+
       const recorder = new MediaRecorder(canvasStream, {
-        mimeType: 'video/webm;codecs=vp9',
-        videoBitsPerSecond: 5000000
+        mimeType,
+        videoBitsPerSecond: 2500000 // Reduced bitrate for better performance
       });
 
       recorder.ondataavailable = (e) => {
@@ -454,24 +459,20 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
     
     let frameCount = 0;
     let isProcessing = false;
+    let lastProcessTime = 0;
+    const PROCESS_INTERVAL = 33; // Process every 33ms (~30fps) for better performance
 
     // Set up the onResults callback - this fires when MediaPipe completes processing
     mediapipeProcessor.pose.onResults((results: any) => {
       isProcessing = false;
       frameCount++;
       
-      // Debug logging
-      if (frameCount % 30 === 0) {
-        console.log(`MediaPipe: ${frameCount} frames processed, pose: ${!!results.poseLandmarks}`);
-      }
-      
       if (!results.poseLandmarks) {
-        console.warn('No pose detected in frame');
         return;
       }
       
-      // Store landmarks - create new array to ensure updates
-      lastLandmarksRef.current = results.poseLandmarks.map((lm: any) => ({...lm}));
+      // Store landmarks directly (no need to map)
+      lastLandmarksRef.current = results.poseLandmarks;
       
       // Process frame with detector
       if (poseDetector) {
@@ -485,7 +486,6 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
           
           // Update rep count based on reps array length
           if (reps && Array.isArray(reps) && reps.length > repCount) {
-            console.log(`Rep count updated: ${repCount} -> ${reps.length}`);
             setRepCount(reps.length);
           }
           
@@ -499,29 +499,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
           const distance = poseDetector.getDistance?.() ?? 0;
           const reach = poseDetector.getCurrentReach?.() ?? 0;
           
-          // Update state for UI cards
-          if (correct !== correctCount) {
+          // Batch state updates to reduce re-renders
+          if (correct !== correctCount || incorrect !== incorrectCount) {
             setCorrectCount(correct);
-          }
-          if (incorrect !== incorrectCount) {
             setIncorrectCount(incorrect);
-          }
-          
-          // Log state for debugging (every 30 frames)
-          if (frameCount % 30 === 0) {
-            console.log('Live Detector State:', { 
-              activityName,
-              state, 
-              currentAngle, 
-              correct, 
-              incorrect, 
-              dipTime,
-              airTime,
-              distance,
-              reach,
-              repCount,
-              repsLength: reps?.length
-            });
           }
           
           // Store in ref with all values
@@ -535,11 +516,6 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
             distance,
             reach
           };
-          
-          // Debug log when counts change
-          if (frameCount % 30 === 0 && (correct > 0 || incorrect > 0)) {
-            console.log('📊 Counts in overlay:', { correct, incorrect, total: reps?.length });
-          }
         } catch (err) {
           console.error('Detector processing error:', err);
         }
@@ -552,23 +528,18 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       }
 
       try {
-        // Save context state
-        ctx.save();
-        
-        // Always draw video frame at 60fps for smooth display
+        // Always draw video frame for smooth display
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Draw skeleton if we have pose data - MATCH UPLOAD MODAL EXACTLY
+        // Draw skeleton if we have pose data
         if (lastLandmarksRef.current) {
           const mp = window as any;
           if (mp.drawConnectors && mp.POSE_CONNECTIONS) {
-            // Draw connections in cyan/blue like Python and upload modal
             mp.drawConnectors(ctx, lastLandmarksRef.current, mp.POSE_CONNECTIONS, {
               color: '#00FFFF',
               lineWidth: 2
             });
-            // Draw landmarks in white/cyan like Python and upload modal
             mp.drawLandmarks(ctx, lastLandmarksRef.current, {
               color: '#FFFFFF',
               fillColor: '#00FFFF',
@@ -577,15 +548,14 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
           }
         }
 
-        // Draw overlay with metrics - MATCH UPLOAD MODAL EXACTLY
+        // Draw overlay with metrics
         drawOverlay(ctx);
-        
-        // Restore context state
-        ctx.restore();
 
-        // Send frame to MediaPipe for processing (only if not already processing)
-        if (!isProcessing && mediapipeProcessor.pose) {
+        // Throttle MediaPipe processing to 30fps for better performance
+        const now = performance.now();
+        if (!isProcessing && mediapipeProcessor.pose && (now - lastProcessTime) >= PROCESS_INTERVAL) {
           isProcessing = true;
+          lastProcessTime = now;
           mediapipeProcessor.pose.send({ image: video }).catch((err) => {
             console.error('MediaPipe send error:', err);
             isProcessing = false;
@@ -595,7 +565,7 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
         console.error('Render error:', e);
       }
 
-      // Continue render loop
+      // Continue render loop at 60fps for smooth video
       animationRef.current = requestAnimationFrame(render);
     };
 
@@ -604,9 +574,9 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
   };
 
   const drawOverlay = (ctx: CanvasRenderingContext2D) => {
-    // Draw metrics overlay EXACTLY matching upload modal
-    ctx.font = 'bold 28px Arial';
-    ctx.lineWidth = 3;
+    // Optimize text rendering
+    ctx.font = 'bold 24px Arial';
+    ctx.lineWidth = 2;
     ctx.strokeStyle = '#000000';
     
     // Get current detector state from ref (updated in real-time by MediaPipe callback)
@@ -1045,4 +1015,4 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
   );
 };
 
-export default LiveRecorder;
+export default memo(LiveRecorder);
