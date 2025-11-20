@@ -1,229 +1,183 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Users, Clock, Star } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { TrendingUp, Users, Clock, Star, Trophy, ArrowRight, CheckCircle } from 'lucide-react';
+import { FEATURED_CHALLENGES, getChallengeProgress, getCategoryColor, getDifficultyColor, type Challenge } from '@/utils/challengeSystem';
+import ChallengeDetailModal from '@/components/challenges/ChallengeDetailModal';
 
 const DiscoverTab = () => {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
 
-  const filterCategories = ['Strength', 'Endurance', 'Flexibility', 'Calisthenics', 'Para-Athlete'];
-  const getChallengeData = (index: number) => {
-    const challengeNames = [
-      // Strength Challenges (10)
-      "Strength Builder 1 – Push-up Streak", "Strength Builder 2 – Pull-up Power", "Strength Builder 3 – Medicine Ball Mastery",
-      "Strength Builder 4 – Upper Body Blast", "Strength Builder 5 – Core Crusher", "Strength Builder 6 – Total Power",
-      "Strength Builder 7 – Push-up Evolution", "Strength Builder 8 – Resistance Training", "Strength Builder 9 – Power Lifter",
-      "Strength Builder 10 – Elite Strength",
-      
-      // Endurance Challenges (10)
-      "Endurance Pro 1 – 800m Run Test", "Endurance Pro 2 – Shuttle Sprint", "Endurance Pro 3 – Distance Runner",
-      "Endurance Pro 4 – Cardio Blast", "Endurance Pro 5 – Marathon Prep", "Endurance Pro 6 – Sprint Training",
-      "Endurance Pro 7 – HIIT Master", "Endurance Pro 8 – Stamina Builder", "Endurance Pro 9 – Racing Challenge",
-      "Endurance Pro 10 – Endurance Elite",
-      
-      // Flexibility Challenges (10)
-      "Flexibility Focus 1 – Sit-and-Reach", "Flexibility Focus 2 – Cobra Stretch Hold", "Flexibility Focus 3 – Chest Opener",
-      "Flexibility Focus 4 – Full Body Flow", "Flexibility Focus 5 – Morning Stretch", "Flexibility Focus 6 – Deep Stretch",
-      "Flexibility Focus 7 – Yoga Basics", "Flexibility Focus 8 – Mobility Master", "Flexibility Focus 9 – Range Builder",
-      "Flexibility Focus 10 – Zen Flexibility",
-      
-      // Calisthenics Challenges (10)
-      "Calisthenics Blast 1 – Jumping Jack Circuit", "Calisthenics Blast 2 – Plank Power", "Calisthenics Blast 3 – Body Weight",
-      "Calisthenics Blast 4 – Movement Flow", "Calisthenics Blast 5 – Dynamic Training", "Calisthenics Blast 6 – Functional Fit",
-      "Calisthenics Blast 7 – No Equipment", "Calisthenics Blast 8 – Street Workout", "Calisthenics Blast 9 – Bar Skills",
-      "Calisthenics Blast 10 – Advanced Flow",
-      
-      // Para-Athlete Challenges (10)
-      "Para Strong 1 – Knee Push-up Series", "Para Strong 2 – Assisted Shuttle Drill", "Para Strong 3 – Modified Movement",
-      "Para Strong 4 – Adaptive Training", "Para Strong 5 – Inclusive Fitness", "Para Strong 6 – Supported Strength",
-      "Para Strong 7 – Accessibility Focus", "Para Strong 8 – Assisted Cardio", "Para Strong 9 – Modified Endurance",
-      "Para Strong 10 – Adaptive Elite"
-    ];
-    
-    const challengeTypes = ['Strength', 'Endurance', 'Flexibility', 'Calisthenics', 'Para-Athlete'];
-    const colors = ['challenge-blue', 'challenge-purple', 'challenge-light-blue', 'challenge-gray', 'challenge-maroon'];
-    const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
-    
-    const typeIndex = Math.floor(index / 10);
-    const color = colors[typeIndex % colors.length];
-    const difficulty = difficulties[index % difficulties.length];
-    const name = challengeNames[index] || `${challengeTypes[typeIndex % challengeTypes.length]} Challenge ${index + 1}`;
-    
-    return { name, color, difficulty, type: challengeTypes[typeIndex % challengeTypes.length] };
-  };
-
-  const getFilteredChallenges = () => {
-    if (!selectedFilter) return Array.from({ length: 25 }, (_, i) => getChallengeData(i)); // Show 5 from each category
-    
-    const categoryIndex = filterCategories.indexOf(selectedFilter);
-    const startIndex = categoryIndex * 10;
-    return Array.from({ length: 5 }, (_, i) => getChallengeData(startIndex + i));
-  };
-
-  const recommendations = [
-    {
-      id: 1,
-      type: 'Trending Workout',
-      title: 'HIIT Cardio Blast',
-      creator: 'FitnessPro',
-      rating: 4.8,
-      participants: 2340,
-      duration: '20 min',
-      image: '🔥'
-    },
-    {
-      id: 2,
-      type: 'New Challenge',
-      title: 'Summer Shred',
-      creator: 'AthleteCoach',
-      rating: 4.9,
-      participants: 1876,
-      duration: '8 weeks',
-      image: '☀️'
-    },
-    {
-      id: 3,
-      type: 'Popular',
-      title: 'Yoga Flow Basics',
-      creator: 'ZenMaster',
-      rating: 4.7,
-      participants: 3210,
-      duration: '30 min',
-      image: '🧘'
-    },
-    {
-      id: 4,
-      type: 'Editor\'s Pick',
-      title: 'Strength Builder',
-      creator: 'PowerLifter',
-      rating: 4.9,
-      participants: 987,
-      duration: '45 min',
-      image: '💪'
-    }
+  const filterCategories = [
+    { id: 'all', name: 'All', icon: '🏆' },
+    { id: 'strength', name: 'Strength', icon: '💪' },
+    { id: 'endurance', name: 'Endurance', icon: '⚡' },
+    { id: 'flexibility', name: 'Flexibility', icon: '🤸' },
+    { id: 'calisthenics', name: 'Calisthenics', icon: '🤸‍♂️' },
+    { id: 'para-athlete', name: 'Para-Athlete', icon: '♿' }
   ];
+
+  const filteredChallenges = selectedFilter && selectedFilter !== 'all'
+    ? FEATURED_CHALLENGES.filter(c => c.category === selectedFilter)
+    : FEATURED_CHALLENGES;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Discover</h1>
-        <p className="text-muted-foreground">Find your next favorite workout</p>
+        <h1 className="text-2xl font-bold mb-2">Discover Challenges</h1>
+        <p className="text-muted-foreground">Join featured challenges and earn exclusive badges</p>
       </div>
 
+      {/* Category Filter */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {filterCategories.map((category) => (
+          <Button
+            key={category.id}
+            variant={selectedFilter === category.id ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedFilter(category.id === selectedFilter ? null : category.id)}
+            className="shrink-0"
+          >
+            <span className="mr-1">{category.icon}</span>
+            {category.name}
+          </Button>
+        ))}
+      </div>
 
-      {/* Trending Section */}
-      <Card className="card-elevated">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <span>Trending Now</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recommendations.map((item) => (
-              <div key={item.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer">
-                <div className="text-3xl">{item.image}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <Badge variant="outline" className="text-xs">
-                      {item.type}
-                    </Badge>
+      {/* Featured Challenges */}
+      <div className="space-y-4">
+        {filteredChallenges.map((challenge) => {
+          const progress = getChallengeProgress(challenge.id);
+
+          return (
+            <Card
+              key={challenge.id}
+              className={`card-elevated cursor-pointer transition-all hover:scale-[1.02] ${
+                progress.completed ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-300 dark:border-green-700' : ''
+              }`}
+              onClick={() => setSelectedChallenge(challenge)}
+            >
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  {/* Challenge Icon */}
+                  <div className="shrink-0">
+                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-3xl">
+                      {challenge.image}
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-sm mb-1 truncate">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-2">by {item.creator}</p>
-                  <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span>{item.rating}</span>
+
+                  {/* Challenge Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base line-clamp-1">{challenge.name}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{challenge.description}</p>
+                      </div>
+                      {progress.completed && (
+                        <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                      )}
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Users className="w-3 h-3" />
-                      <span>{item.participants}</span>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <Badge className={`${getCategoryColor(challenge.category)} text-white text-xs`}>
+                        {challenge.category}
+                      </Badge>
+                      <Badge className={`${getDifficultyColor(challenge.difficulty)} text-white text-xs`}>
+                        {challenge.difficulty}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {challenge.duration}
+                      </Badge>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{item.duration}</span>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {challenge.participants.toLocaleString()}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        {challenge.rating}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Trophy className="w-3 h-3 text-yellow-500" />
+                        {challenge.rewards.coins} coins
+                      </div>
                     </div>
+
+                    {/* Progress */}
+                    {!progress.completed && progress.workoutsCompleted > 0 && (
+                      <div className="mb-2">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="font-medium">{progress.workoutsCompleted}/{progress.totalWorkouts} workouts</span>
+                        </div>
+                        <Progress value={progress.progress} className="h-1.5" />
+                      </div>
+                    )}
+
+                    {/* Action Button */}
+                    <Button
+                      size="sm"
+                      variant={progress.completed ? 'outline' : 'default'}
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedChallenge(challenge);
+                      }}
+                    >
+                      {progress.completed ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Completed
+                        </>
+                      ) : progress.workoutsCompleted > 0 ? (
+                        <>
+                          Continue Challenge
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      ) : (
+                        <>
+                          Start Challenge
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">
-                  Try
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Categories */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Browse Categories</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { name: 'Strength', icon: '💪', color: 'challenge-blue' },
-            { name: 'Cardio', icon: '❤️', color: 'challenge-purple' },
-            { name: 'Flexibility', icon: '🤸', color: 'challenge-light-blue' },
-            { name: 'Recovery', icon: '😌', color: 'challenge-gray' },
-            { name: 'Sports', icon: '⚽', color: 'challenge-maroon' },
-            { name: 'Agility', icon: '⚡', color: 'challenge-blue' }
-          ].map((category) => (
-            <Card key={category.name} className={`cursor-pointer hover:scale-105 transition-transform ${category.color}`}>
-              <CardContent className="p-4 text-center text-white">
-                <div className="text-2xl mb-2">{category.icon}</div>
-                <h3 className="font-semibold">{category.name}</h3>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* Featured Challenges (10 total - 2 per category) */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Featured Challenges</h2>
-        <div className="space-y-3">
-          {[
-            // Strength (2)
-            { name: '💪 Strength Starter', type: 'Strength', difficulty: 'Beginner', color: 'challenge-blue', participants: 1234 },
-            { name: '💪 Power Builder', type: 'Strength', difficulty: 'Intermediate', color: 'challenge-blue', participants: 856 },
-            
-            // Endurance (2)
-            { name: '🏃 Endurance Sprinter', type: 'Endurance', difficulty: 'Intermediate', color: 'challenge-purple', participants: 987 },
-            { name: '🏃 Marathon Master', type: 'Endurance', difficulty: 'Advanced', color: 'challenge-purple', participants: 654 },
-            
-            // Flexibility (2)
-            { name: '🤸 Flexibility Focus', type: 'Flexibility', difficulty: 'Beginner', color: 'challenge-light-blue', participants: 2341 },
-            { name: '🤸 Zen Master', type: 'Flexibility', difficulty: 'Intermediate', color: 'challenge-light-blue', participants: 1432 },
-            
-            // Calisthenics (2)
-            { name: '🔥 Calisthenics Challenger', type: 'Calisthenics', difficulty: 'Intermediate', color: 'challenge-gray', participants: 789 },
-            { name: '🔥 Body Weight Beast', type: 'Calisthenics', difficulty: 'Advanced', color: 'challenge-gray', participants: 543 },
-            
-            // Para-Athlete (2)
-            { name: '♿ Para Warrior', type: 'Para-Athlete', difficulty: 'All Levels', color: 'challenge-maroon', participants: 456 },
-            { name: '♿ Adaptive Elite', type: 'Para-Athlete', difficulty: 'Advanced', color: 'challenge-maroon', participants: 321 }
-          ].map((challenge, i) => (
-            <Card key={i} className={`cursor-pointer hover:scale-105 transition-transform ${challenge.color}`}>
-              <CardContent className="p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{challenge.name}</h3>
-                    <p className="text-xs opacity-90 mb-2">{challenge.difficulty} Level</p>
-                    <Badge variant="outline" className="text-xs bg-white/20 text-white border-white/30">
-                      {challenge.participants} participants
-                    </Badge>
-                  </div>
-                  <Button size="sm" variant="secondary" className="ml-4">
-                    Start
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      {/* Empty State */}
+      {filteredChallenges.length === 0 && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">No challenges found</h3>
+            <p className="text-sm text-muted-foreground">
+              Try selecting a different category
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Challenge Detail Modal */}
+      {selectedChallenge && (
+        <ChallengeDetailModal
+          challenge={selectedChallenge}
+          onClose={() => setSelectedChallenge(null)}
+        />
+      )}
     </div>
   );
 };

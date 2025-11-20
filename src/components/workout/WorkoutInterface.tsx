@@ -91,8 +91,48 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
       }
     });
 
-    // Show toast for newly unlocked badges
-    if (newlyUnlocked.length > 0) {
+    // Check for challenge completion
+    const activeChallengeData = localStorage.getItem('active_challenge');
+    let challengeBadgeUnlocked = false;
+    
+    if (activeChallengeData) {
+      try {
+        const { challengeId, workoutIndex } = JSON.parse(activeChallengeData);
+        const { updateChallengeProgress, FEATURED_CHALLENGES } = await import('@/utils/challengeSystem');
+        
+        const isCompleted = updateChallengeProgress(challengeId, workoutIndex);
+        
+        if (isCompleted) {
+          const challenge = FEATURED_CHALLENGES.find(c => c.id === challengeId);
+          if (challenge) {
+            // Unlock challenge badge
+            if (!previouslyUnlocked.includes(challenge.badge.id)) {
+              unlockBadge(challenge.badge.id);
+              newlyUnlocked.push(challenge.badge.id);
+              challengeBadgeUnlocked = true;
+            }
+            
+            toast.success('🎉 Challenge Completed!', {
+              description: `You earned ${challenge.rewards.coins} coins and the ${challenge.badge.name} badge!`,
+              duration: 6000,
+            });
+          }
+          
+          // Clear active challenge
+          localStorage.removeItem('active_challenge');
+        } else {
+          toast.success('Workout completed!', {
+            description: 'Keep going to complete the challenge',
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error('Error processing challenge:', error);
+      }
+    }
+
+    // Show toast for newly unlocked badges (non-challenge)
+    if (newlyUnlocked.length > 0 && !challengeBadgeUnlocked) {
       const badgeNames = newlyUnlocked
         .map(id => BADGES.find(b => b.id === id)?.name)
         .filter(Boolean)
