@@ -101,10 +101,22 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
     setIsProcessing(true);
     setProgress(0);
 
+    // Add visibility change listener to notify user
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        toast.info('Processing continues in background. Keep this tab open!', {
+          duration: 5000
+        });
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     // ALWAYS use browser processing in production (no backend needed)
     if (isProduction) {
       console.log('Production mode: Using browser-only processing');
       await processWithBrowser(file);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       return;
     }
 
@@ -113,6 +125,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
       const serverAvailable = await backendProcessor.checkServerStatus();
       if (serverAvailable) {
         await processWithBackend(file);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
         return;
       } else {
         console.warn('Backend server not available, falling back to browser processing');
@@ -123,6 +136,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
 
     // Fallback to browser processing
     await processWithBrowser(file);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
   };
 
   const processWithBackend = async (file: File) => {
@@ -281,8 +295,10 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
             setProcessingMessage('Tracking movements...');
           } else if (prog < 75) {
             setProcessingMessage('Counting reps...');
-          } else if (prog < 95) {
+          } else if (prog < 90) {
             setProcessingMessage('Finalizing analysis...');
+          } else if (prog < 95) {
+            setProcessingMessage('Interpolating frames for smooth output...');
           } else {
             setProcessingMessage('Creating output video...');
           }
@@ -369,7 +385,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
 
 
 
-  const handleSubmitWorkout = () => {
+  const handleSubmitWorkout = async () => {
     if (result && (result.type === 'good' || result.type === 'bad')) {
       // Save to localStorage for Reports tab
       const workoutData = {
@@ -385,10 +401,12 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
         coinsEarned: result.type === 'good' ? 50 : 25
       };
 
-      // Get existing workout history
-      const existingHistory = JSON.parse(localStorage.getItem('workout_history') || '[]');
-      existingHistory.push(workoutData);
-      localStorage.setItem('workout_history', JSON.stringify(existingHistory));
+      // Use utility function to add workout with thumbnail generation
+      const { addWorkoutToHistory } = await import('@/utils/workoutStorage');
+      
+      // Pass video file or URL for thumbnail generation
+      const videoSource = videoFile || result.videoUrl;
+      await addWorkoutToHistory(workoutData, videoSource);
 
       onComplete(workoutData);
     }
@@ -571,9 +589,12 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
 
           {/* Info Card */}
           <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="p-4">
+            <CardContent className="p-4 space-y-2">
               <p className="text-sm text-center">
                 💡 Processing happens entirely in your browser - no data is sent to any server!
+              </p>
+              <p className="text-xs text-center text-muted-foreground">
+                ⚡ Processing continues even when this tab is minimized or inactive
               </p>
             </CardContent>
           </Card>

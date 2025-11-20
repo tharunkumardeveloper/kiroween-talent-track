@@ -12,13 +12,15 @@ import SAIAdminDashboard from '@/components/home/SAIAdminDashboard';
 import DiscoverTab from '@/components/tabs/DiscoverTab';
 import ReportTab from '@/components/tabs/ReportTab';
 import RoadmapTab from '@/components/tabs/RoadmapTab';
+import ChallengesTab from '@/components/tabs/ChallengesTab';
+import ChallengeDetail from '@/components/challenges/ChallengeDetail';
 import ActivityDetail from '@/components/activities/ActivityDetail';
 import WorkoutInterface from '@/components/workout/WorkoutInterface';
 import ProfilePage from '@/components/profile/ProfilePage';
 import SettingsPage from '@/components/settings/SettingsPage';
 import BadgesScreen from '@/components/badges/BadgesScreen';
 
-type AppState = 'loading' | 'auth' | 'setup' | 'home' | 'profile' | 'settings' | 'badges';
+type AppState = 'loading' | 'auth' | 'setup' | 'home' | 'profile' | 'settings' | 'badges' | 'challenges' | 'challenge-detail';
 type UserRole = 'athlete' | 'coach' | 'admin';
 
 const Index = () => {
@@ -31,6 +33,7 @@ const Index = () => {
   const [workoutMode, setWorkoutMode] = useState<'upload' | 'live'>('upload');
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [userSetupData, setUserSetupData] = useState<any>(null);
+  const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null);
 
   // Simulate checking for returning user
   useEffect(() => {
@@ -115,15 +118,18 @@ const Index = () => {
     setAppState('home');
   };
 
-  const handleChallengeRedirect = (challengeId: number) => {
-    setActiveTab('discover');
-    // In a real app, you'd scroll to the specific challenge
-    setTimeout(() => {
-      const element = document.getElementById(`challenge-${challengeId}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
+  const handleChallengeRedirect = (challengeId: string) => {
+    // Navigate to specific challenge detail page
+    setSelectedChallengeId(challengeId);
+    setAppState('challenge-detail');
+  };
+
+  const handleStartChallengeWorkout = (workoutName: string) => {
+    // Find the activity by name
+    const activity = { name: workoutName };
+    setSelectedActivity(activity);
+    // Don't auto-start, let user choose mode
+    setShowWorkout(false);
   };
 
   const renderTabContent = () => {
@@ -186,6 +192,34 @@ const Index = () => {
 
   if (appState === 'badges') {
     return <BadgesScreen onBack={handleBackToHome} />;
+  }
+
+  if (appState === 'challenge-detail' && selectedChallengeId) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="sticky top-0 z-50 bg-primary border-b border-primary-dark safe-top">
+          <div className="px-4 py-4">
+            <div className="flex items-center space-x-3 max-w-md mx-auto">
+              <Button variant="ghost" size="sm" onClick={handleBackToHome} className="text-white hover:bg-white/20">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="flex-1">
+                <h1 className="text-lg font-semibold text-white">Challenge</h1>
+                <p className="text-sm text-white/80">Complete all workouts to earn badge</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="px-4 py-6 max-w-md mx-auto">
+          <ChallengeDetail 
+            challengeId={selectedChallengeId}
+            onBack={handleBackToHome}
+            onStartWorkout={handleStartChallengeWorkout}
+          />
+        </div>
+      </div>
+    );
   }
 
   // Main app state rendering

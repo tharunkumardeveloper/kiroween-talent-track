@@ -66,7 +66,7 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
     setStage(mode === 'live' ? 'liveRecording' : 'upload');
   };
 
-  const handleWorkoutComplete = (results: any) => {
+  const handleWorkoutComplete = async (results: any) => {
     // Save workout to localStorage for Reports tab
     const workoutData = {
       id: Date.now(),
@@ -82,9 +82,12 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
       ...results
     };
 
-    const existingHistory = JSON.parse(localStorage.getItem('workout_history') || '[]');
-    existingHistory.push(workoutData);
-    localStorage.setItem('workout_history', JSON.stringify(existingHistory));
+    // Use utility function to add workout with thumbnail generation
+    const { addWorkoutToHistory } = await import('@/utils/workoutStorage');
+    
+    // Pass video blob, file, or URL for thumbnail generation (in order of preference)
+    const videoSource = results.videoBlob || selectedVideo || results.videoUrl;
+    await addWorkoutToHistory(workoutData, videoSource);
 
     // Return to home/training tab
     onBack();

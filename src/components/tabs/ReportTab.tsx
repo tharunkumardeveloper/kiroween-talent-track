@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChartBar as BarChart3, Calendar, Target, TrendingUp, Download, Award, Clock, Zap, Scale, Ruler, Activity, Play } from 'lucide-react';
+import { getWorkoutHistory, getRecentWorkouts, getStorageInfo } from '@/utils/workoutStorage';
 
 interface ReportTabProps {
   userSetupData?: any;
@@ -9,7 +10,9 @@ interface ReportTabProps {
 
 const ReportTab = ({ userSetupData }: ReportTabProps) => {
   // Get workout history from localStorage
-  const workoutHistory = JSON.parse(localStorage.getItem('workout_history') || '[]');
+  const workoutHistory = getWorkoutHistory();
+  const recentWorkouts = getRecentWorkouts(2); // Get last 2 workouts
+  const storageInfo = getStorageInfo();
   
   const weeklyStats = [
     { day: 'Mon', value: 85 },
@@ -79,28 +82,33 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
         <p className="text-muted-foreground">Track your fitness progress</p>
       </div>
 
-      {/* Recent Workouts */}
-      {workoutHistory.length > 0 && (
+      {/* Recent Workouts - Last 2 Only */}
+      {recentWorkouts.length > 0 && (
         <Card className="card-elevated">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center space-x-2">
-              <Activity className="w-5 h-5 text-primary" />
-              <span>Recent Workouts</span>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Activity className="w-5 h-5 text-primary" />
+                <span>Recent Workouts</span>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                Last {recentWorkouts.length}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {workoutHistory.slice(-5).reverse().map((workout: any, index: number) => (
+              {recentWorkouts.reverse().map((workout, index) => (
                 <Card key={workout.id || index} className="border">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-4 mb-3">
-                      {/* Video Thumbnail */}
+                      {/* Workout Thumbnail */}
                       <div className="w-16 h-12 bg-black rounded overflow-hidden relative flex-shrink-0">
-                        {workout.videoUrl ? (
-                          <video 
-                            src={workout.videoUrl} 
+                        {workout.thumbnailUrl ? (
+                          <img 
+                            src={workout.thumbnailUrl} 
+                            alt={`${workout.activityName} thumbnail`}
                             className="w-full h-full object-cover"
-                            muted
                           />
                         ) : (
                           <div className="w-full h-full bg-primary/10 flex items-center justify-center">
@@ -144,6 +152,17 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+            
+            {/* Storage Info */}
+            <div className="mt-4 p-3 bg-secondary/30 rounded-lg">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Total workouts: {storageInfo.workoutCount}</span>
+                <span>Thumbnails: {storageInfo.thumbnailCount}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Older workout thumbnails are automatically removed to save space
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -14,12 +14,14 @@ import {
   Star
 } from 'lucide-react';
 
-// Import challenge images
-import fullBodyImage from '@/assets/challenges/full-body.jpg';
-import calisthenicsImage from '@/assets/challenges/calisthenics.jpg';
-import flexibilityImage from '@/assets/challenges/flexibility.jpg';
-import lowerBodyImage from '@/assets/challenges/lower-body.jpg';
-import paraAthleteImage from '@/assets/challenges/para-athlete.jpg';
+// Import challenge images from root challenges folder
+const pushupPowerImage = '/challenges/pushup-power.webp';
+const pullupProgressionImage = '/challenges/pullup-progression.jpg';
+const coreCrusherImage = '/challenges/core-crusher.avif';
+const sprintMasterImage = '/challenges/sprint-master.jpg';
+const flexibilityFoundationImage = '/challenges/flexibility-foundation.webp';
+const jumpPowerImage = '/challenges/jump-power.jpg';
+const adaptiveStrengthImage = '/challenges/adaptive-strength.jpg';
 
 // Import activity images
 import modifiedShuttleRunImage from '@/assets/activities/modified-shuttle-run.jpg';
@@ -40,7 +42,7 @@ interface HomeScreenProps {
   activeTab: string;
   onProfileOpen?: () => void;
   onSettingsOpen?: () => void;
-  onChallengeRedirect?: (challengeId: number) => void;
+  onChallengeRedirect?: (challengeId: string) => void;
   onActivitySelect?: (activity: any) => void;
 }
 
@@ -48,61 +50,81 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
   const [searchFocus, setSearchFocus] = useState(false);
   const [selectedChallengeFilter, setSelectedChallengeFilter] = useState<string | null>(null);
 
-  const getChallengeImage = (challengeId: number) => {
+  const getChallengeImage = (challengeId: string) => {
     switch (challengeId) {
-      case 1: return fullBodyImage;
-      case 2: return calisthenicsImage;
-      case 3: return flexibilityImage;
-      case 4: return lowerBodyImage;
-      case 5: return paraAthleteImage;
-      default: return fullBodyImage;
+      case 'push-up-power': return pushupPowerImage;
+      case 'pull-up-progression': return pullupProgressionImage;
+      case 'core-crusher': return coreCrusherImage;
+      case 'sprint-master': return sprintMasterImage;
+      case 'flexibility-foundation': return flexibilityFoundationImage;
+      case 'jump-power': return jumpPowerImage;
+      case 'adaptive-strength': return adaptiveStrengthImage;
+      default: return pushupPowerImage;
     }
   };
 
   const challenges = [
     {
-      id: 1,
-      title: 'Full Body Challenge',
+      id: 'push-up-power',
+      title: 'Push-up Power',
       type: 'challenge-blue',
-      difficulty: 'Intermediate',
-      duration: '4 weeks',
-      participants: 1234,
+      difficulty: 'Beginner',
+      duration: '5 workouts',
+      participants: 2340,
       category: 'Strength'
     },
     {
-      id: 2,
-      title: 'Calisthenics Plan',
+      id: 'pull-up-progression',
+      title: 'Pull-up Progression',
       type: 'challenge-purple',
-      difficulty: 'Advanced',
-      duration: '6 weeks',
-      participants: 856,
-      category: 'Calisthenics'
-    },
-    {
-      id: 3,
-      title: 'Kegel Power Boost',
-      type: 'challenge-gray',
-      difficulty: 'Beginner',
-      duration: '2 weeks',
-      participants: 2341,
-      category: 'Flexibility'
-    },
-    {
-      id: 4,
-      title: 'Lower Body Challenge',
-      type: 'challenge-light-blue',
       difficulty: 'Intermediate',
-      duration: '3 weeks',
-      participants: 987,
+      duration: '5 workouts',
+      participants: 1876,
+      category: 'Strength'
+    },
+    {
+      id: 'core-crusher',
+      title: 'Core Crusher',
+      type: 'challenge-blue',
+      difficulty: 'Beginner',
+      duration: '5 workouts',
+      participants: 3210,
+      category: 'Strength'
+    },
+    {
+      id: 'sprint-master',
+      title: 'Sprint Master',
+      type: 'challenge-purple',
+      difficulty: 'Intermediate',
+      duration: '5 workouts',
+      participants: 1543,
       category: 'Endurance'
     },
     {
-      id: 5,
-      title: 'Para-Athlete Challenge',
+      id: 'flexibility-foundation',
+      title: 'Flexibility Foundation',
+      type: 'challenge-light-blue',
+      difficulty: 'Beginner',
+      duration: '5 workouts',
+      participants: 2890,
+      category: 'Flexibility'
+    },
+    {
+      id: 'jump-power',
+      title: 'Jump Power',
+      type: 'challenge-gray',
+      difficulty: 'Intermediate',
+      duration: '5 workouts',
+      participants: 1234,
+      category: 'Calisthenics'
+    },
+    {
+      id: 'adaptive-strength',
+      title: 'Adaptive Strength',
       type: 'challenge-maroon',
-      difficulty: 'All Levels',
-      duration: '5 weeks',
-      participants: 456,
+      difficulty: 'Beginner',
+      duration: '5 workouts',
+      participants: 987,
       category: 'Para-Athlete'
     }
   ];
@@ -233,45 +255,6 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
           </CardContent>
         </Card>
 
-        {/* Challenges Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Challenges</h2>
-          </div>
-          
-          
-          {/* Horizontal Scrollable Challenge Cards */}
-          <div className="flex space-x-4 overflow-x-auto pb-3 scrollbar-hide">
-            {getFilteredChallenges().map((challenge) => (
-              <Card 
-                key={challenge.id} 
-                className={`flex-shrink-0 w-48 overflow-hidden cursor-pointer hover:scale-105 transition-transform relative`}
-                onClick={() => onChallengeRedirect?.(challenge.id)}
-              >
-                <div 
-                  className="h-24 bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url(${getChallengeImage(challenge.id)})`
-                  }}
-                >
-                </div>
-                <CardContent className={`p-3 ${challenge.type} text-white`}>
-                  <h3 className="font-semibold text-sm text-white leading-tight mb-2">
-                    {challenge.title}
-                  </h3>
-                  <p className="text-xs opacity-90 mb-2">{challenge.difficulty}</p>
-                  <div className="flex items-center justify-between text-xs">
-                    <span>{challenge.duration}</span>
-                    <Badge variant="outline" className="text-xs bg-white/20 text-white border-white/30">
-                      {challenge.participants}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
         {/* Activity Focus */}
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-4">Activity Focus</h2>
@@ -328,6 +311,45 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
                       <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                       <span className="font-medium">{activity.rating}</span>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Challenges Section */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Challenges</h2>
+          </div>
+          
+          
+          {/* Horizontal Scrollable Challenge Cards */}
+          <div className="flex space-x-4 overflow-x-auto pb-3 scrollbar-hide">
+            {getFilteredChallenges().map((challenge) => (
+              <Card 
+                key={challenge.id} 
+                className={`flex-shrink-0 w-48 overflow-hidden cursor-pointer hover:scale-105 transition-transform relative`}
+                onClick={() => onChallengeRedirect?.(challenge.id)}
+              >
+                <div 
+                  className="h-24 bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url(${getChallengeImage(challenge.id)})`
+                  }}
+                >
+                </div>
+                <CardContent className={`p-3 ${challenge.type} text-white`}>
+                  <h3 className="font-semibold text-sm text-white leading-tight mb-2">
+                    {challenge.title}
+                  </h3>
+                  <p className="text-xs opacity-90 mb-2">{challenge.difficulty}</p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span>{challenge.duration}</span>
+                    <Badge variant="outline" className="text-xs bg-white/20 text-white border-white/30">
+                      {challenge.participants}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>

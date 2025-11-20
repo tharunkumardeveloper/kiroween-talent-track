@@ -2,8 +2,15 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Video, StopCircle, CheckCircle, RotateCcw, Loader2 } from 'lucide-react';
+import { ArrowLeft, Video, StopCircle, CheckCircle, RotateCcw, Loader2, X, Info } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface LiveRecorderProps {
   activityName: string;
@@ -50,6 +57,134 @@ const WORKOUT_TIPS: { [key: string]: string[] } = {
   ]
 };
 
+// Workout demonstrations with instructions
+const WORKOUT_DEMOS: { [key: string]: { 
+  gifUrl: string; 
+  instructions: string[];
+  keyPoints: string[];
+}} = {
+  'Push-ups': {
+    gifUrl: '/gifs tt/pushup.gif',
+    instructions: [
+      'Start in plank position with hands shoulder-width apart',
+      'Lower your body until chest nearly touches the ground',
+      'Push back up to starting position',
+      'Keep your body in a straight line throughout'
+    ],
+    keyPoints: [
+      'Full body visible in frame',
+      'Side view works best',
+      'Maintain steady pace',
+      'Complete full range of motion'
+    ]
+  },
+  'Pull-ups': {
+    gifUrl: '/gifs tt/pullup.gif',
+    instructions: [
+      'Hang from bar with arms fully extended',
+      'Pull yourself up until chin is over the bar',
+      'Lower yourself back down with control',
+      'Repeat without swinging'
+    ],
+    keyPoints: [
+      'Full body visible in frame',
+      'Front or side view',
+      'No kipping or swinging',
+      'Full extension at bottom'
+    ]
+  },
+  'Sit-ups': {
+    gifUrl: '/gifs tt/situp.gif',
+    instructions: [
+      'Lie on your back with knees bent',
+      'Place hands behind head or across chest',
+      'Curl up to touch your knees',
+      'Lower back down with control'
+    ],
+    keyPoints: [
+      'Side view recommended',
+      'Full body visible',
+      'Touch knees each rep',
+      'Controlled movement'
+    ]
+  },
+  'Vertical Jump': {
+    gifUrl: '/gifs tt/verticaljump.gif',
+    instructions: [
+      'Stand with feet shoulder-width apart',
+      'Bend knees and swing arms back',
+      'Explode upward, reaching as high as possible',
+      'Land softly and reset'
+    ],
+    keyPoints: [
+      'Side view works best',
+      'Full body visible',
+      'Jump as high as you can',
+      'Land in same spot'
+    ]
+  },
+  'Shuttle Run': {
+    gifUrl: '/gifs tt/shuttlerun.gif',
+    instructions: [
+      'Sprint to the line as fast as possible',
+      'Touch the line with your hand',
+      'Turn quickly and sprint back',
+      'Repeat for required distance'
+    ],
+    keyPoints: [
+      'Side or angled view',
+      'Full running path visible',
+      'Touch lines clearly',
+      'Maximum speed'
+    ]
+  },
+  'Sit Reach': {
+    gifUrl: '/gifs tt/sit&reach.gif',
+    instructions: [
+      'Sit with legs extended straight',
+      'Reach forward as far as possible',
+      'Hold the stretch briefly',
+      'Return to starting position'
+    ],
+    keyPoints: [
+      'Side view recommended',
+      'Full body visible',
+      'Reach as far as you can',
+      'Keep legs straight'
+    ]
+  },
+  'Standing Broad Jump': {
+    gifUrl: '/gifs tt/verticaljump.gif',
+    instructions: [
+      'Stand with feet shoulder-width apart',
+      'Swing arms back and bend knees',
+      'Jump forward as far as possible',
+      'Land with both feet together'
+    ],
+    keyPoints: [
+      'Side view works best',
+      'Full jump path visible',
+      'Jump for maximum distance',
+      'Balanced landing'
+    ]
+  },
+  'Knee Push-ups': {
+    gifUrl: '/gifs tt/kneepushup.gif',
+    instructions: [
+      'Start in plank position with knees on the ground',
+      'Lower your body until chest nearly touches the ground',
+      'Push back up to starting position',
+      'Keep your back straight throughout'
+    ],
+    keyPoints: [
+      'Full body visible in frame',
+      'Side view works best',
+      'Maintain steady pace',
+      'Complete full range of motion'
+    ]
+  }
+};
+
 const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -72,14 +207,45 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
   const [incorrectCount, setIncorrectCount] = useState(0);
   const [poseDetector, setPoseDetector] = useState<any>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
+  const [showOrientationPrompt, setShowOrientationPrompt] = useState(false);
+  const [showDemoDialog, setShowDemoDialog] = useState(true); // Show on mount
 
   const tips = WORKOUT_TIPS[activityName] || WORKOUT_TIPS['Push-ups'];
+  const demo = WORKOUT_DEMOS[activityName] || WORKOUT_DEMOS['Push-ups'];
 
   // Initialize camera
   useEffect(() => {
     initCamera();
     return () => cleanup();
   }, []);
+
+  // Monitor orientation changes
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      const landscape = window.innerWidth > window.innerHeight;
+      setIsLandscape(landscape);
+      
+      // Show prompt if in portrait mode during recording
+      if (!landscape && stage === 'recording') {
+        setShowOrientationPrompt(true);
+        toast.warning('Please rotate to horizontal mode for better recording');
+      } else {
+        setShowOrientationPrompt(false);
+      }
+    };
+
+    window.addEventListener('resize', handleOrientationChange);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    // Check initial orientation
+    handleOrientationChange();
+
+    return () => {
+      window.removeEventListener('resize', handleOrientationChange);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, [stage]);
 
   // Cycle tips during recording
   useEffect(() => {
@@ -195,6 +361,12 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
 
   const startRecording = async () => {
     try {
+      // Check orientation before starting
+      if (!isLandscape) {
+        toast.error('Please rotate to horizontal mode before recording');
+        return;
+      }
+
       if (!videoRef.current || !canvasRef.current || !streamRef.current) {
         toast.error('Camera not ready. Please wait...');
         console.error('Missing refs:', {
@@ -595,17 +767,28 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
             </div>
             <div className="flex items-center space-x-2">
               {stage === 'setup' && !isLoading && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={switchCamera}
-                  className="tap-target"
-                  title="Switch Camera"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </Button>
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowDemoDialog(true)}
+                    className="tap-target"
+                    title="View Demo"
+                  >
+                    <Info className="w-5 h-5" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={switchCamera}
+                    className="tap-target"
+                    title="Switch Camera"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </Button>
+                </>
               )}
               {stage === 'recording' && (
                 <Badge variant="destructive" className="animate-pulse px-3 py-1">
@@ -631,7 +814,7 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
             {/* Hidden video element - always mounted for camera stream */}
             <video
               ref={videoRef}
-              className={stage === 'setup' && !isLoading ? 'w-full h-full object-contain' : 'hidden'}
+              className={stage === 'setup' && !isLoading ? 'w-full h-full object-cover' : 'hidden'}
               playsInline
               muted
               autoPlay
@@ -641,7 +824,7 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
             {/* Canvas for recording - always mounted but hidden when not recording */}
             <canvas
               ref={canvasRef}
-              className={stage === 'recording' ? 'w-full h-full object-contain' : 'hidden'}
+              className={stage === 'recording' ? 'w-full h-full object-cover' : 'hidden'}
             />
 
             {/* Review Stage - Recorded Video */}
@@ -671,6 +854,24 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
                 {stage === 'review' && '✓ Complete'}
               </Badge>
             </div>
+
+            {/* Orientation Prompt Overlay */}
+            {!isLandscape && stage !== 'review' && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                <div className="text-center p-6 max-w-sm">
+                  <div className="text-6xl mb-4 animate-bounce">📱➡️📱</div>
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Rotate to Horizontal
+                  </h3>
+                  <p className="text-white/80 mb-4">
+                    Please rotate your device to landscape mode for the best recording experience
+                  </p>
+                  <Badge className="bg-yellow-500 text-black px-4 py-2">
+                    Horizontal Mode Required
+                  </Badge>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -785,6 +986,91 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
           )}
         </div>
       </div>
+
+      {/* Workout Demonstration Dialog */}
+      <Dialog open={showDemoDialog} onOpenChange={setShowDemoDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Video className="w-6 h-6 text-primary" />
+              How to Perform {activityName}
+            </DialogTitle>
+            <DialogDescription>
+              Watch the demonstration and follow the instructions for best results
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* GIF Demonstration */}
+            <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+              <img 
+                src={demo.gifUrl} 
+                alt={`${activityName} demonstration`}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  // Fallback if GIF fails to load
+                  (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EDemo Video%3C/text%3E%3C/svg%3E';
+                }}
+              />
+              <Badge className="absolute top-4 right-4 bg-primary">
+                Demo
+              </Badge>
+            </div>
+
+            {/* Instructions */}
+            <div>
+              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                Step-by-Step Instructions
+              </h3>
+              <ol className="space-y-2">
+                {demo.instructions.map((instruction, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Badge variant="outline" className="mt-0.5 shrink-0">
+                      {index + 1}
+                    </Badge>
+                    <span className="text-sm">{instruction}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* Key Points for Recording */}
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                <Info className="w-5 h-5 text-primary" />
+                Recording Tips
+              </h3>
+              <ul className="space-y-2">
+                {demo.keyPoints.map((point, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm">
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 shrink-0" />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => setShowDemoDialog(false)} 
+                className="flex-1"
+                size="lg"
+              >
+                Got It, Start Recording
+              </Button>
+              <Button 
+                onClick={() => setShowDemoDialog(false)} 
+                variant="outline"
+                size="lg"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
