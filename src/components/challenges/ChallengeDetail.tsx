@@ -183,7 +183,10 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
     return (
       <div className="text-center p-8">
         <h2 className="text-xl font-bold mb-2">Challenge not found</h2>
-        <Button onClick={onBack}>Go Back</Button>
+        <Button onClick={() => {
+          window.scrollTo(0, 0);
+          onBack();
+        }}>Go Back</Button>
       </div>
     );
   }
@@ -326,7 +329,10 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
                 {!workout.completed && (
                   <Button
                     size="sm"
-                    onClick={() => onStartWorkout(workout.name)}
+                    onClick={() => {
+                      window.scrollTo(0, 0);
+                      onStartWorkout(workout.name);
+                    }}
                   >
                     Start
                     <ArrowRight className="w-4 h-4 ml-1" />

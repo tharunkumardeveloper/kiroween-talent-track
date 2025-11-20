@@ -20,6 +20,7 @@ import ProfilePage from '@/components/profile/ProfilePage';
 import SettingsPage from '@/components/settings/SettingsPage';
 import BadgesScreen from '@/components/badges/BadgesScreen';
 import { preloadAllAssets } from '@/utils/imagePreloader';
+import { scrollToTop, scrollToTopInstant } from '@/utils/scrollToTop';
 
 type AppState = 'loading' | 'auth' | 'setup' | 'home' | 'profile' | 'settings' | 'badges' | 'challenges' | 'challenge-detail';
 type UserRole = 'athlete' | 'coach' | 'admin';
@@ -72,6 +73,7 @@ const Index = () => {
   }, []);
 
   const handleLoadingComplete = () => {
+    scrollToTopInstant();
     // If returning user, skip to home
     if (!isFirstTime) {
       setAppState('home');
@@ -81,6 +83,7 @@ const Index = () => {
   };
 
   const handleLogin = (role: UserRole) => {
+    scrollToTopInstant();
     setUserRole(role);
     // Set demo names based on role
     const names = {
@@ -99,6 +102,7 @@ const Index = () => {
   };
 
   const handleSetupComplete = (userData: any) => {
+    scrollToTopInstant();
     // Save user data
     setUserSetupData(userData);
     localStorage.setItem('talenttrack_user', JSON.stringify({
@@ -112,10 +116,12 @@ const Index = () => {
   };
 
   const handleActivitySelect = (activity: any) => {
+    scrollToTop();
     setSelectedActivity(activity);
   };
 
   const handleActivityBack = () => {
+    scrollToTop();
     setSelectedActivity(null);
     setShowWorkout(false);
     // Return to training tab when coming back from workout
@@ -123,33 +129,40 @@ const Index = () => {
   };
 
   const handleStartWorkout = (mode: 'upload' | 'live') => {
+    scrollToTop();
     setWorkoutMode(mode);
     setShowWorkout(true);
   };
 
   const handleProfileOpen = () => {
+    scrollToTop();
     setAppState('profile');
   };
 
   const handleSettingsOpen = () => {
+    scrollToTop();
     setAppState('settings');
   };
 
   const handleBadgesOpen = () => {
+    scrollToTop();
     setAppState('badges');
   };
 
   const handleBackToHome = () => {
+    scrollToTop();
     setAppState('home');
   };
 
   const handleChallengeRedirect = (challengeId: string) => {
+    scrollToTop();
     // Navigate to specific challenge detail page
     setSelectedChallengeId(challengeId);
     setAppState('challenge-detail');
   };
 
   const handleStartChallengeWorkout = (workoutName: string) => {
+    scrollToTop();
     // Find the activity by name
     const activity = { name: workoutName };
     setSelectedActivity(activity);
@@ -333,7 +346,10 @@ const Index = () => {
                     ].map(({ id, label, icon }) => (
                       <button
                         key={id}
-                        onClick={() => setActiveTab(id)}
+                        onClick={() => {
+                          scrollToTop();
+                          setActiveTab(id);
+                        }}
                         className={`flex flex-col items-center space-y-1 tap-target p-2 rounded-lg transition-colors ${
                           activeTab === id ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
                         }`}

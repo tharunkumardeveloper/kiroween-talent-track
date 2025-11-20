@@ -727,7 +727,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
         <div className="px-4 py-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" onClick={onBack}>
+              <Button variant="ghost" size="sm" onClick={() => {
+                window.scrollTo(0, 0);
+                onBack();
+              }}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
