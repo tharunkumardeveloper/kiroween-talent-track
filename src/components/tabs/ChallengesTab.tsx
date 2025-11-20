@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Target, CheckCircle, Lock, Star, ArrowRight } from 'lucide-react';
+import ProgressiveImage from '@/components/ui/progressive-image';
 
 interface Challenge {
   id: string;
@@ -280,30 +281,25 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
           return (
             <Card key={challenge.id} className="card-elevated overflow-hidden">
               {/* Challenge Cover Image */}
-              {challenge.image && (
-                <div className="h-40 relative bg-gradient-to-br from-primary/20 to-primary/5">
-                  <img 
-                    src={challenge.image}
-                    alt={challenge.name}
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                    onError={(e) => {
-                      console.error('Failed to load image:', challenge.image);
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3 z-10">
-                    <div className="flex items-center gap-2">
-                      <div className="text-3xl">{challenge.badge.icon}</div>
-                      <div>
-                        <h3 className="text-white font-bold text-base">{challenge.name}</h3>
-                        <p className="text-white/90 text-xs">{challenge.description}</p>
-                      </div>
+              <div className="h-40 relative">
+                <ProgressiveImage
+                  src={challenge.image || '/placeholder.svg'}
+                  alt={challenge.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  placeholderClassName="bg-gradient-to-br from-primary/20 to-primary/5"
+                  priority={true}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10" />
+                <div className="absolute bottom-3 left-3 right-3 z-20">
+                  <div className="flex items-center gap-2">
+                    <div className="text-3xl">{challenge.badge.icon}</div>
+                    <div>
+                      <h3 className="text-white font-bold text-base">{challenge.name}</h3>
+                      <p className="text-white/90 text-xs">{challenge.description}</p>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
               
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
