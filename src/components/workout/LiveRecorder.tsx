@@ -245,9 +245,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: facingMode
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          facingMode: facingMode,
+          aspectRatio: { ideal: 16/9 }
         },
         audio: false
       });
@@ -319,9 +320,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       // Get new stream with new facing mode
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: newFacingMode
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          facingMode: newFacingMode,
+          aspectRatio: { ideal: 16/9 }
         },
         audio: false
       });
@@ -377,8 +379,9 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       const canvas = canvasRef.current;
       const video = videoRef.current;
 
-      canvas.width = video.videoWidth || 1280;
-      canvas.height = video.videoHeight || 720;
+      // Set canvas to match video dimensions for full-screen capture
+      canvas.width = video.videoWidth || 1920;
+      canvas.height = video.videoHeight || 1080;
 
       // Draw initial frame to prevent black screen
       const ctx = canvas.getContext('2d');
@@ -805,7 +808,7 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
               <div className="relative w-full h-full">
                 <video
                   src={URL.createObjectURL(recordedBlob)}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                   controls
                   playsInline
                   autoPlay
