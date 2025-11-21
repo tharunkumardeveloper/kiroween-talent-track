@@ -645,7 +645,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
         )}
 
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent pointer-events-auto">
+          <div className="absolute top-0 left-0 right-0 p-2 sm:p-4 bg-gradient-to-b from-black/70 to-transparent pointer-events-auto">
             <div className="flex items-center justify-between">
               <Button 
                 variant="ghost" 
@@ -654,34 +654,34 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
                   window.scrollTo(0, 0);
                   onBack();
                 }}
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/20 h-8 w-8 p-0"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-4 h-4" />
               </Button>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 {stage === 'setup' && !isLoading && (
                   <>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={handleZoomOut}
-                      className="text-white hover:bg-white/20"
+                      className="text-white hover:bg-white/20 h-8 w-8 p-0"
                       disabled={zoomLevel <= 1}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
                       </svg>
                     </Button>
-                    <span className="text-white text-sm font-medium">{zoomLevel.toFixed(1)}x</span>
+                    <span className="text-white text-xs font-medium">{zoomLevel.toFixed(1)}x</span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={handleZoomIn}
-                      className="text-white hover:bg-white/20"
+                      className="text-white hover:bg-white/20 h-8 w-8 p-0"
                       disabled={zoomLevel >= 3}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                       </svg>
                     </Button>
@@ -689,25 +689,25 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
                       variant="ghost" 
                       size="sm" 
                       onClick={() => setShowDemoDialog(true)}
-                      className="text-white hover:bg-white/20"
+                      className="text-white hover:bg-white/20 h-8 w-8 p-0"
                     >
-                      <Info className="w-5 h-5" />
+                      <Info className="w-4 h-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={switchCamera}
-                      className="text-white hover:bg-white/20"
+                      className="text-white hover:bg-white/20 h-8 w-8 p-0"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     </Button>
                   </>
                 )}
                 {stage === 'recording' && (
-                  <Badge variant="destructive" className="animate-pulse px-3 py-1">
-                    <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
+                  <Badge variant="destructive" className="animate-pulse px-2 py-1 text-xs">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-1"></div>
                     REC {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
                   </Badge>
                 )}
@@ -715,67 +715,63 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
             </div>
           </div>
 
-          <div className="absolute top-20 left-4 pointer-events-auto">
-            <Badge className="bg-black/70 text-white border-white/30 px-3 py-2">
+          <div className="absolute top-12 left-2 pointer-events-auto">
+            <Badge className="bg-black/70 text-white border-white/30 px-2 py-1 text-xs">
               {stage === 'setup' && '📹 Ready'}
               {stage === 'recording' && '🔴 Live'}
               {stage === 'review' && '✓ Complete'}
-              <span className="ml-2">•</span>
-              <span className="ml-2">{activityName}</span>
+              <span className="ml-1">•</span>
+              <span className="ml-1">{activityName}</span>
             </Badge>
           </div>
 
           {stage === 'recording' && (
-            <div className="absolute top-32 left-4 space-y-2">
-              <div className="bg-black/70 text-white px-3 py-2 rounded-lg backdrop-blur-sm">
-                <div className="text-2xl font-bold">{repCount}</div>
-                <div className="text-xs opacity-80">Reps</div>
+            <div className="absolute top-20 left-2 space-y-1">
+              <div className="bg-black/70 text-white px-2 py-1.5 rounded-lg backdrop-blur-sm">
+                <div className="text-xl font-bold">{repCount}</div>
+                <div className="text-[10px] opacity-80">Reps</div>
               </div>
-              <div className="bg-black/70 text-white px-3 py-2 rounded-lg backdrop-blur-sm">
-                <div className="text-lg font-bold">
+              <div className="bg-black/70 text-white px-2 py-1.5 rounded-lg backdrop-blur-sm">
+                <div className="text-sm font-bold">
                   {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
                 </div>
-                <div className="text-xs opacity-80">Time</div>
+                <div className="text-[10px] opacity-80">Time</div>
               </div>
             </div>
           )}
 
           {stage === 'recording' && (
-            <div className="absolute bottom-32 left-4 right-4">
-              <div className="bg-blue-500/90 text-white px-4 py-3 rounded-lg backdrop-blur-sm text-center">
-                <p className="text-sm font-medium">💡 {tips[currentTip]}</p>
+            <div className="absolute bottom-20 left-2 right-2">
+              <div className="bg-blue-500/90 text-white px-3 py-2 rounded-lg backdrop-blur-sm text-center">
+                <p className="text-xs font-medium">💡 {tips[currentTip]}</p>
               </div>
             </div>
           )}
 
           {stage === 'setup' && !isLoading && (
-            <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 pointer-events-auto">
+            <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 pointer-events-auto max-w-md mx-auto">
               <Card className="bg-black/70 backdrop-blur-lg border-white/20">
-                <CardContent className="p-6 text-white">
-                  <h3 className="font-semibold mb-4 flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-2 text-green-400" />
+                <CardContent className="p-4 text-white">
+                  <h3 className="font-semibold mb-3 flex items-center text-sm">
+                    <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
                     Setup Checklist
                   </h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                      <span className="font-bold text-yellow-400">📱 ROTATE TO LANDSCAPE MODE (Turn phone sideways)</span>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></div>
+                      <span className="font-bold text-yellow-400">📱 ROTATE TO LANDSCAPE</span>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Position your full body in frame</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                      <span>Position full body in frame</span>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
                       <span>🤏 Pinch to zoom or use +/- buttons</span>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                       <span>Ensure good lighting</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Keep device steady</span>
                     </div>
                   </div>
                 </CardContent>
@@ -783,15 +779,15 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
             </div>
           )}
 
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent pointer-events-auto">
-            <div className="flex flex-col items-center gap-4">
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent pointer-events-auto">
+            <div className="flex flex-col items-center gap-2 max-w-md mx-auto">
               {stage === 'setup' && !isLoading && (
                 <Button 
                   onClick={startRecording} 
-                  className="w-full max-w-md h-14 text-lg bg-red-600 hover:bg-red-700"
+                  className="w-full h-12 text-base bg-red-600 hover:bg-red-700"
                   size="lg"
                 >
-                  <Video className="w-5 h-5 mr-2" />
+                  <Video className="w-4 h-4 mr-2" />
                   Start Recording
                 </Button>
               )}
@@ -799,44 +795,44 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
               {stage === 'recording' && (
                 <Button 
                   onClick={stopRecording} 
-                  className="w-full max-w-md h-14 text-lg bg-red-600 hover:bg-red-700"
+                  className="w-full h-12 text-base bg-red-600 hover:bg-red-700"
                   size="lg"
                 >
-                  <StopCircle className="w-5 h-5 mr-2" />
+                  <StopCircle className="w-4 h-4 mr-2" />
                   Stop Recording
                 </Button>
               )}
 
               {stage === 'review' && (
-                <div className="w-full max-w-md space-y-3">
-                  <div className="bg-black/70 text-white px-4 py-3 rounded-lg backdrop-blur-sm text-center mb-4">
+                <div className="w-full space-y-2">
+                  <div className="bg-black/70 text-white px-3 py-2 rounded-lg backdrop-blur-sm text-center mb-2">
                     <div className="flex justify-around">
                       <div>
-                        <div className="text-2xl font-bold text-green-400">{repCount}</div>
-                        <div className="text-xs opacity-80">Total Reps</div>
+                        <div className="text-xl font-bold text-green-400">{repCount}</div>
+                        <div className="text-[10px] opacity-80">Total Reps</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-green-400">
+                        <div className="text-xl font-bold text-green-400">
                           {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
                         </div>
-                        <div className="text-xs opacity-80">Duration</div>
+                        <div className="text-[10px] opacity-80">Duration</div>
                       </div>
                     </div>
                   </div>
                   <Button 
                     onClick={useRecording} 
-                    className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
+                    className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
                     size="lg"
                   >
-                    <CheckCircle className="w-5 h-5 mr-2" />
+                    <CheckCircle className="w-4 h-4 mr-2" />
                     Use This Recording
                   </Button>
                   <Button 
                     onClick={retryRecording} 
                     variant="outline" 
-                    className="w-full text-white border-white/30 hover:bg-white/20"
+                    className="w-full h-10 text-sm text-white border-white/30 hover:bg-white/20"
                   >
-                    <RotateCcw className="w-4 h-4 mr-2" />
+                    <RotateCcw className="w-3 h-3 mr-2" />
                     Record Again
                   </Button>
                 </div>
