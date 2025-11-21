@@ -11,7 +11,9 @@ import {
   Trophy, 
   Calendar,
   Zap,
-  Star
+  Star,
+  Ghost,
+  ChevronRight
 } from 'lucide-react';
 
 // Import challenge images from root challenges folder
@@ -341,6 +343,37 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
             ))}
           </div>
         </div>
+
+        {/* Ghost Mode Banner */}
+        <Card 
+          className="mb-6 overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-purple-950 via-gray-900 to-purple-950 border-purple-500/30 hover:border-purple-400/60 hover:shadow-2xl hover:shadow-purple-500/50 group"
+          onClick={() => onTabChange?.('ghost-mode')}
+        >
+          <CardContent className="p-4 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-600/10 to-purple-600/0 animate-pulse" />
+            {/* Floating ghosts on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+              <Ghost className="absolute top-2 right-12 w-4 h-4 text-purple-400/50 animate-ghost-float" />
+              <Ghost className="absolute bottom-2 right-24 w-3 h-3 text-purple-300/40 animate-ghost-float" style={{ animationDelay: '0.3s' }} />
+              <Ghost className="absolute top-1/2 right-32 w-5 h-5 text-purple-500/30 animate-ghost-float" style={{ animationDelay: '0.6s' }} />
+            </div>
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-full bg-purple-900/50 flex items-center justify-center border border-purple-500/30 group-hover:border-purple-400/60 group-hover:bg-purple-800/60 transition-all duration-300 group-hover:scale-110">
+                  <Ghost className="w-6 h-6 text-purple-400 animate-pulse group-hover:animate-bounce" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-purple-100 flex items-center space-x-2 group-hover:text-white transition-colors">
+                    <span>Ghost Mode</span>
+                    <Badge className="bg-purple-800/50 text-purple-200 border-purple-600/30 group-hover:bg-purple-700/70 group-hover:text-purple-100 transition-all">NEW</Badge>
+                  </h3>
+                  <p className="text-sm text-purple-300 group-hover:text-purple-200 transition-colors">Train in the shadows 👻</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-purple-400 group-hover:text-purple-300 group-hover:translate-x-1 transition-all" />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Challenges Section */}
         <div className="mb-6">

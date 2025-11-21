@@ -9,6 +9,9 @@ import SetupFlow from '@/components/setup/SetupFlow';
 import HomeScreen from '@/components/home/HomeScreen';
 import CoachDashboard from '@/components/home/CoachDashboard';
 import SAIAdminDashboard from '@/components/home/SAIAdminDashboard';
+import GhostModeScreen from '@/components/ghost/GhostModeScreen';
+import GhostWorkoutDetail from '@/components/ghost/GhostWorkoutDetail';
+import GhostWorkoutInterface from '@/components/workout/GhostWorkoutInterface';
 import DiscoverTab from '@/components/tabs/DiscoverTab';
 import ReportTab from '@/components/tabs/ReportTab';
 import RoadmapTab from '@/components/tabs/RoadmapTab';
@@ -22,7 +25,7 @@ import BadgesScreen from '@/components/badges/BadgesScreen';
 import { preloadAllAssets } from '@/utils/imagePreloader';
 import { scrollToTop, scrollToTopInstant } from '@/utils/scrollToTop';
 
-type AppState = 'loading' | 'auth' | 'setup' | 'home' | 'profile' | 'settings' | 'badges' | 'challenges' | 'challenge-detail';
+type AppState = 'loading' | 'auth' | 'setup' | 'home' | 'profile' | 'settings' | 'badges' | 'challenges' | 'challenge-detail' | 'ghost-mode' | 'ghost-workout-detail';
 type UserRole = 'athlete' | 'coach' | 'admin';
 
 const Index = () => {
@@ -33,9 +36,11 @@ const Index = () => {
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [showWorkout, setShowWorkout] = useState(false);
   const [workoutMode, setWorkoutMode] = useState<'upload' | 'live'>('upload');
+  const [ghostGif, setGhostGif] = useState<string | undefined>(undefined);
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [userSetupData, setUserSetupData] = useState<any>(null);
   const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null);
+  const [showGhostAnimation, setShowGhostAnimation] = useState(false);
 
   // Simulate checking for returning user and preload assets
   useEffect(() => {
@@ -131,8 +136,12 @@ const Index = () => {
     scrollToTop();
     setSelectedActivity(null);
     setShowWorkout(false);
-    // Return to training tab when coming back from workout
-    setActiveTab('training');
+    // Return to appropriate screen based on where we came from
+    if (appState === 'ghost-workout-detail') {
+      setAppState('ghost-mode');
+    } else {
+      setActiveTab('training');
+    }
   };
 
   const handleStartWorkout = (mode: 'upload' | 'live') => {
@@ -159,6 +168,7 @@ const Index = () => {
   const handleBackToHome = () => {
     scrollToTop();
     setAppState('home');
+    setShowGhostAnimation(false); // No animation when going back
   };
 
   const handleTabChange = (tab: string) => {
@@ -210,28 +220,7 @@ const Index = () => {
     }
   };
 
-  // Show activity detail if selected
-  if (selectedActivity) {
-    if (showWorkout) {
-      return (
-        <WorkoutInterface
-          activity={selectedActivity}
-          mode={workoutMode}
-          onBack={() => setShowWorkout(false)}
-        />
-      );
-    }
-
-    return (
-      <ActivityDetail
-        activity={selectedActivity}
-        onBack={handleActivityBack}
-        onStartWorkout={handleStartWorkout}
-      />
-    );
-  }
-
-  // Show special pages
+  // Show special pages first (before activity detail check)
   if (appState === 'profile') {
     return <ProfilePage userName={userName} onBack={handleBackToHome} onLogout={() => setAppState('auth')} />;
   }
@@ -242,6 +231,84 @@ const Index = () => {
 
   if (appState === 'badges') {
     return <BadgesScreen onBack={handleBackToHome} />;
+  }
+
+  if (appState === 'ghost-mode') {
+    return (
+      <GhostModeScreen
+        onBack={handleBackToHome}
+        onSelectActivity={(activity) => {
+          setSelectedActivity(activity);
+          setAppState('ghost-workout-detail');
+          setShowGhostAnimation(false); // No animation when going to detail
+        }}
+        showAnimation={showGhostAnimation}
+      />
+    );
+  }
+
+  // Show workout interface when workout is active (check this first)
+  if (selectedActivity && showWorkout) {
+    // Use GhostWorkoutInterface if ghostGif is provided (Ghost Mode)
+    if (ghostGif) {
+      return (
+        <GhostWorkoutInterface
+          activity={selectedActivity}
+          mode={workoutMode}
+          ghostGif={ghostGif}
+          onBack={() => {
+            console.log('GhostWorkoutInterface onBack called');
+            setShowWorkout(false);
+            setGhostGif(undefined);
+            // Stay on ghost-workout-detail to show the detail screen again
+          }}
+        />
+      );
+    }
+    
+    // Use regular WorkoutInterface for normal mode
+    return (
+      <WorkoutInterface
+        activity={selectedActivity}
+        mode={workoutMode}
+        onBack={() => {
+          setShowWorkout(false);
+          // Return to activity detail if we came from there
+          if (appState === 'home') {
+            // Stay on home, activity detail will show
+          }
+        }}
+      />
+    );
+  }
+
+  if (appState === 'ghost-workout-detail' && selectedActivity) {
+    return (
+      <GhostWorkoutDetail
+        activity={selectedActivity}
+        onBack={() => {
+          setAppState('ghost-mode');
+          setShowGhostAnimation(false); // No animation when going back
+        }}
+        onStartWorkout={(mode, ghostGifUrl) => {
+          console.log('Ghost Mode - Starting workout:', mode, ghostGifUrl);
+          setWorkoutMode(mode);
+          setGhostGif(ghostGifUrl);
+          setShowWorkout(true);
+        }}
+      />
+    );
+  }
+
+  // Show activity detail if selected (for normal training mode only)
+  if (selectedActivity && appState === 'home') {
+    return (
+      <ActivityDetail
+        activity={selectedActivity}
+        onBack={handleActivityBack}
+        onStartWorkout={handleStartWorkout}
+      />
+    );
   }
 
   if (appState === 'challenge-detail' && selectedChallengeId) {
@@ -290,7 +357,14 @@ const Index = () => {
             <HomeScreen
               userRole={userRole}
               userName={userName}
-              onTabChange={handleTabChange}
+              onTabChange={(tab) => {
+                if (tab === 'ghost-mode') {
+                  setShowGhostAnimation(true); // Show animation when entering from banner
+                  setAppState('ghost-mode');
+                } else {
+                  handleTabChange(tab);
+                }
+              }}
               activeTab={activeTab}
               onProfileOpen={handleProfileOpen}
               onSettingsOpen={handleSettingsOpen}

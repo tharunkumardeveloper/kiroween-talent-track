@@ -273,6 +273,86 @@ export const BADGES: Badge[] = [
       description: 'Complete all workout types'
     },
     rarity: 'legendary'
+  },
+
+  // Ghost Mode Badges
+  {
+    id: 'ghost-initiate',
+    name: 'Ghost Initiate',
+    description: 'Complete your first Ghost Mode workout',
+    icon: '👻',
+    category: 'milestone',
+    requirement: {
+      type: 'workouts',
+      count: 1,
+      description: 'Complete 1 Ghost Mode workout'
+    },
+    rarity: 'rare'
+  },
+  {
+    id: 'ghost-hunter',
+    name: 'Ghost Hunter',
+    description: 'Complete 10 Ghost Mode workouts',
+    icon: '🎃',
+    category: 'milestone',
+    requirement: {
+      type: 'workouts',
+      count: 10,
+      description: 'Complete 10 Ghost Mode workouts'
+    },
+    rarity: 'epic'
+  },
+  {
+    id: 'ghost-master',
+    name: 'Ghost Master',
+    description: 'Complete 25 Ghost Mode workouts',
+    icon: '💀',
+    category: 'elite',
+    requirement: {
+      type: 'workouts',
+      count: 25,
+      description: 'Complete 25 Ghost Mode workouts'
+    },
+    rarity: 'legendary'
+  },
+  {
+    id: 'ghost-perfect',
+    name: 'Ghostly Perfection',
+    description: 'Match the ghost with perfect form',
+    icon: '✨',
+    category: 'milestone',
+    requirement: {
+      type: 'perfect',
+      count: 1,
+      description: 'Complete 1 Ghost Mode workout with perfect form'
+    },
+    rarity: 'epic'
+  },
+  {
+    id: 'live-champion',
+    name: 'Live Champion',
+    description: 'Complete 10 live recording workouts',
+    icon: '📹',
+    category: 'milestone',
+    requirement: {
+      type: 'workouts',
+      count: 10,
+      description: 'Complete 10 live workouts'
+    },
+    rarity: 'rare'
+  },
+  {
+    id: 'upload-expert',
+    name: 'Upload Expert',
+    description: 'Complete 10 upload mode workouts',
+    icon: '📤',
+    category: 'milestone',
+    requirement: {
+      type: 'workouts',
+      count: 10,
+      description: 'Complete 10 upload workouts'
+    },
+    rarity: 'rare'
   }
 ];
 
@@ -302,6 +382,23 @@ export const getCategoryColor = (category: Badge['category']) => {
 export const checkBadgeUnlock = (badge: Badge, userStats: any): boolean => {
   const { requirement } = badge;
 
+  // Ghost mode specific badges
+  if (badge.id === 'ghost-initiate' || badge.id === 'ghost-hunter' || badge.id === 'ghost-master') {
+    return (userStats.ghostModeWorkouts || 0) >= requirement.count;
+  }
+  
+  if (badge.id === 'ghost-perfect') {
+    return (userStats.ghostModePerfectWorkouts || 0) >= requirement.count;
+  }
+
+  if (badge.id === 'live-champion') {
+    return (userStats.liveWorkouts || 0) >= requirement.count;
+  }
+
+  if (badge.id === 'upload-expert') {
+    return (userStats.uploadWorkouts || 0) >= requirement.count;
+  }
+
   switch (requirement.type) {
     case 'reps':
       if (requirement.exercise) {
@@ -328,6 +425,23 @@ export const checkBadgeUnlock = (badge: Badge, userStats: any): boolean => {
 // Get user's badge progress
 export const getBadgeProgress = (badge: Badge, userStats: any): number => {
   const { requirement } = badge;
+
+  // Ghost mode specific badges
+  if (badge.id === 'ghost-initiate' || badge.id === 'ghost-hunter' || badge.id === 'ghost-master') {
+    return Math.min(100, ((userStats.ghostModeWorkouts || 0) / requirement.count) * 100);
+  }
+  
+  if (badge.id === 'ghost-perfect') {
+    return Math.min(100, ((userStats.ghostModePerfectWorkouts || 0) / requirement.count) * 100);
+  }
+
+  if (badge.id === 'live-champion') {
+    return Math.min(100, ((userStats.liveWorkouts || 0) / requirement.count) * 100);
+  }
+
+  if (badge.id === 'upload-expert') {
+    return Math.min(100, ((userStats.uploadWorkouts || 0) / requirement.count) * 100);
+  }
 
   switch (requirement.type) {
     case 'reps':
@@ -361,9 +475,30 @@ export const updateUserStats = (currentStats: any, workoutData: any) => {
   if (!stats.perfectWorkouts) stats.perfectWorkouts = 0;
   if (!stats.maxRepsInWorkout) stats.maxRepsInWorkout = 0;
   if (!stats.workoutDates) stats.workoutDates = [];
+  if (!stats.ghostModeWorkouts) stats.ghostModeWorkouts = 0;
+  if (!stats.ghostModePerfectWorkouts) stats.ghostModePerfectWorkouts = 0;
+  if (!stats.liveWorkouts) stats.liveWorkouts = 0;
+  if (!stats.uploadWorkouts) stats.uploadWorkouts = 0;
 
   // Update total workouts
   stats.totalWorkouts += 1;
+
+  // Track workout mode (ghost vs normal)
+  if (workoutData.isGhostMode) {
+    stats.ghostModeWorkouts += 1;
+    
+    // Check for ghost mode perfect workout
+    if (workoutData.posture === 'Good' && workoutData.badSets === 0 && (workoutData.setsCompleted || 0) > 0) {
+      stats.ghostModePerfectWorkouts += 1;
+    }
+  }
+
+  // Track recording mode (live vs upload)
+  if (workoutData.mode === 'live') {
+    stats.liveWorkouts += 1;
+  } else if (workoutData.mode === 'upload') {
+    stats.uploadWorkouts += 1;
+  }
 
   // Update exercise-specific reps
   const exercise = workoutData.activityName;

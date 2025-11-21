@@ -26,10 +26,10 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
 
   // Activities with available Python scripts
   const supportedActivities = [
-    'Push-ups', 
-    'Pull-ups', 
-    'Sit-ups', 
-    'Vertical Jump', 
+    'Push-ups',
+    'Pull-ups',
+    'Sit-ups',
+    'Vertical Jump',
     'Shuttle Run',
     'Modified Shuttle Run',
     'Sit Reach',
@@ -37,7 +37,7 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
     'Standing Broad Jump'
   ];
   const isSupported = supportedActivities.includes(activity.name);
-  
+
   // Activities with live recording support
   const liveRecordingSupported = [
     'Push-ups',
@@ -57,7 +57,7 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
   const handleLiveRecordingStart = () => {
     setStage('live');
   };
-  
+
   const handleLiveRecordingComplete = (file: File) => {
     setSelectedVideo(file);
     setStage('processing');
@@ -94,14 +94,14 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
     // Check for challenge completion
     const activeChallengeData = localStorage.getItem('active_challenge');
     let challengeBadgeUnlocked = false;
-    
+
     if (activeChallengeData) {
       try {
         const { challengeId, workoutIndex } = JSON.parse(activeChallengeData);
         const { updateChallengeProgress, FEATURED_CHALLENGES } = await import('@/utils/challengeSystem');
-        
+
         const isCompleted = updateChallengeProgress(challengeId, workoutIndex);
-        
+
         if (isCompleted) {
           const challenge = FEATURED_CHALLENGES.find(c => c.id === challengeId);
           if (challenge) {
@@ -111,13 +111,13 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
               newlyUnlocked.push(challenge.badge.id);
               challengeBadgeUnlocked = true;
             }
-            
+
             toast.success('🎉 Challenge Completed!', {
               description: `You earned ${challenge.rewards.coins} coins and the ${challenge.badge.name} badge!`,
               duration: 6000,
             });
           }
-          
+
           // Clear active challenge
           localStorage.removeItem('active_challenge');
         } else {
@@ -137,7 +137,7 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
         .map(id => BADGES.find(b => b.id === id)?.name)
         .filter(Boolean)
         .join(', ');
-      
+
       toast.success(`🏆 Badge${newlyUnlocked.length > 1 ? 's' : ''} Unlocked!`, {
         description: badgeNames,
         duration: 5000,
@@ -158,12 +158,14 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
       coinsEarned: results.posture === 'Good' ? 50 : 25,
       correctReps: results.stats?.correctReps || 0,
       totalReps: results.stats?.totalReps || results.setsCompleted,
+      isGhostMode: false, // Mark as normal mode workout
+      mode: mode, // Track if it was live or upload
       ...results
     };
 
     // Use utility function to add workout with thumbnail generation
     const { addWorkoutToHistory } = await import('@/utils/workoutStorage');
-    
+
     // Pass video blob, file, or URL for thumbnail generation (in order of preference)
     const videoSource = results.videoBlob || selectedVideo || results.videoUrl;
     await addWorkoutToHistory(workoutData, videoSource);

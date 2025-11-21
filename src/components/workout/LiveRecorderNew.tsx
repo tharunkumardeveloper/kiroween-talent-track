@@ -180,9 +180,30 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   const [isPinching, setIsPinching] = useState(false);
   const initialPinchDistance = useRef<number>(0);
   const initialZoom = useRef<number>(1);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
 
   const tips = WORKOUT_TIPS[activityName] || WORKOUT_TIPS['Push-ups'];
   const demo = WORKOUT_DEMOS[activityName] || WORKOUT_DEMOS['Push-ups'];
+
+  // Detect device type and orientation
+  useEffect(() => {
+    const checkDevice = () => {
+      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const landscape = window.innerWidth > window.innerHeight;
+      setIsMobile(mobile);
+      setIsLandscape(landscape);
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    window.addEventListener('orientationchange', checkDevice);
+
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      window.removeEventListener('orientationchange', checkDevice);
+    };
+  }, []);
 
   // Initialize camera
   useEffect(() => {
@@ -691,6 +712,18 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
           </div>
         )}
 
+        {/* Mobile Portrait Warning Overlay */}
+        {isMobile && !isLandscape && !isLoading && (
+          <div className="absolute inset-0 bg-black/90 z-40 flex items-center justify-center pointer-events-none">
+            <div className="text-center px-6 animate-pulse">
+              <div className="text-6xl mb-4">📱</div>
+              <div className="text-2xl font-bold text-white mb-2">Rotate Your Device</div>
+              <div className="text-white/80 text-sm">Please rotate to landscape mode for the best experience</div>
+              <div className="mt-6 text-4xl animate-bounce">↻</div>
+            </div>
+          </div>
+        )}
+
         <video
           ref={videoRef}
           className={stage === 'setup' && !isLoading ? 'absolute inset-0 w-full h-full object-cover' : 'hidden'}
@@ -816,17 +849,25 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
                     Setup Checklist
                   </h3>
                   <div className="space-y-2 text-xs">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></div>
-                      <span className="font-bold text-yellow-400">📱 ROTATE TO LANDSCAPE</span>
-                    </div>
+                    {isMobile && !isLandscape && (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></div>
+                        <span className="font-bold text-yellow-400">📱 ROTATE TO LANDSCAPE</span>
+                      </div>
+                    )}
+                    {!isMobile && (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                        <span className="font-bold text-green-400">💻 Desktop Mode Ready</span>
+                      </div>
+                    )}
                     <div className="flex items-center space-x-2">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                       <span>Position full body in frame</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                      <span>🤏 Pinch to zoom or use +/- buttons</span>
+                      <span>{isMobile ? '🤏 Pinch to zoom or use +/- buttons' : '🖱️ Use +/- buttons to zoom'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
