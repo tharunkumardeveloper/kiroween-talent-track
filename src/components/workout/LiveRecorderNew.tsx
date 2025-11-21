@@ -610,7 +610,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-50" style={{ 
+    <div className={`fixed inset-0 z-50 ${stage === 'review' ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-black'}`} style={{ 
       WebkitTransform: 'rotate(0deg)',
       transform: 'rotate(0deg)'
     }}>
@@ -640,17 +640,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
           className={stage === 'recording' ? 'absolute inset-0 w-full h-full object-cover' : 'hidden'}
         />
 
-        {stage === 'review' && recordedBlob && (
-          <video
-            src={URL.createObjectURL(recordedBlob)}
-            className="absolute inset-0 w-full h-full object-cover"
-            controls
-            playsInline
-            autoPlay
-            loop
-            style={{ objectFit: 'cover' }}
-          />
-        )}
+
 
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-0 right-0 p-2 sm:p-4 bg-gradient-to-b from-black/70 to-transparent pointer-events-auto">
@@ -807,22 +797,43 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
                 </Button>
               )}
 
-              {stage === 'review' && (
-                <div className="w-full space-y-2">
-                  <div className="bg-black/70 text-white px-3 py-2 rounded-lg backdrop-blur-sm text-center mb-2">
-                    <div className="flex justify-around">
-                      <div>
-                        <div className="text-xl font-bold text-green-400">{repCount}</div>
-                        <div className="text-[10px] opacity-80">Total Reps</div>
+              {stage === 'review' && recordedBlob && (
+                <div className="w-full space-y-3">
+                  {/* Video Preview Card */}
+                  <Card className="bg-black/70 backdrop-blur-lg border-white/20 overflow-hidden">
+                    <CardContent className="p-3">
+                      <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                        <video
+                          src={URL.createObjectURL(recordedBlob)}
+                          className="w-full h-full object-contain"
+                          controls
+                          playsInline
+                          autoPlay
+                          loop
+                        />
                       </div>
-                      <div>
-                        <div className="text-xl font-bold text-green-400">
-                          {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                    </CardContent>
+                  </Card>
+
+                  {/* Stats Card */}
+                  <Card className="bg-black/70 backdrop-blur-lg border-white/20">
+                    <CardContent className="p-3">
+                      <div className="flex justify-around text-white">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-400">{repCount}</div>
+                          <div className="text-xs opacity-80">Total Reps</div>
                         </div>
-                        <div className="text-[10px] opacity-80">Duration</div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-400">
+                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                          </div>
+                          <div className="text-xs opacity-80">Duration</div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Action Buttons */}
                   <Button 
                     onClick={useRecording} 
                     className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
