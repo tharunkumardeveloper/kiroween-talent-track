@@ -792,14 +792,14 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                       </div>
                     )}
 
-                    {result.stats?.incorrectReps !== undefined && !activityName.includes('Jump') && (
+                    {result.stats?.incorrectReps !== undefined && result.stats.totalReps > 0 && !activityName.includes('Jump') && (
                       <div className="text-center p-3 rounded-lg bg-secondary/30">
                         <div className="text-2xl font-bold mb-1 text-red-500">{result.stats.incorrectReps}</div>
                         <p className="text-xs text-muted-foreground">Bad Form</p>
                       </div>
                     )}
                     
-                    {result.stats?.correctReps !== undefined && !activityName.includes('Jump') && (
+                    {result.stats?.correctReps !== undefined && result.stats.totalReps > 0 && !activityName.includes('Jump') && (
                       <div className="text-center p-3 rounded-lg bg-secondary/30">
                         <div className="text-2xl font-bold mb-1 text-green-500">{result.stats.correctReps}</div>
                         <p className="text-xs text-muted-foreground">Correct Form</p>
@@ -894,7 +894,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                         {result.stats.minElbowAngle && result.stats.minElbowAngle < 90 && (
                           <p>💪 Good depth achieved (min angle: {Math.round(result.stats.minElbowAngle)}°)</p>
                         )}
-                        {result.stats.avgRepDuration && (
+                        {result.stats.avgRepDuration && result.stats.avgRepDuration > 0 && (
                           <p>⏲️ Average rep time: {result.stats.avgRepDuration.toFixed(1)}s</p>
                         )}
                         {result.stats.distance && (
