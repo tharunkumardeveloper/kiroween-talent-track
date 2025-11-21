@@ -41,6 +41,27 @@ const WORKOUT_TIPS: { [key: string]: string[] } = {
     'Touch your knees',
     'Control the movement',
     'Breathe with rhythm'
+  ],
+  'Vertical Jump': [
+    'Bend knees deeply',
+    'Swing arms upward',
+    'Explode with power',
+    'Land softly',
+    'Reset between jumps'
+  ],
+  'Shuttle Run': [
+    'Sprint at full speed',
+    'Touch the line',
+    'Quick direction change',
+    'Stay low on turns',
+    'Maintain pace'
+  ],
+  'Sit Reach': [
+    'Keep legs straight',
+    'Reach forward slowly',
+    'Hold the stretch',
+    'Breathe deeply',
+    'No bouncing'
   ]
 };
 
@@ -74,6 +95,60 @@ const WORKOUT_DEMOS: { [key: string]: {
       'Place hands behind head or across chest',
       'Curl up to touch your knees',
       'Lower back down with control'
+    ]
+  },
+  'Vertical Jump': {
+    gifUrl: '/verticaljump.gif',
+    instructions: [
+      'Stand with feet shoulder-width apart',
+      'Bend knees and swing arms back',
+      'Explode upward, reaching as high as possible',
+      'Land softly with bent knees'
+    ]
+  },
+  'Shuttle Run': {
+    gifUrl: '/shuttlerun.gif',
+    instructions: [
+      'Start at one line, sprint to the opposite line',
+      'Touch the line with your hand',
+      'Turn quickly and sprint back',
+      'Repeat for the required number of laps'
+    ]
+  },
+  'Modified Shuttle Run': {
+    gifUrl: '/shuttlerun.gif',
+    instructions: [
+      'Start at one line with assistance if needed',
+      'Move to the opposite line at your pace',
+      'Touch the line and turn',
+      'Return to starting position'
+    ]
+  },
+  'Sit Reach': {
+    gifUrl: '/sit&reach.gif',
+    instructions: [
+      'Sit with legs straight and feet against a box',
+      'Place hands together and reach forward slowly',
+      'Hold the maximum reach for 2 seconds',
+      'Measure distance reached past your toes'
+    ]
+  },
+  'Inclined Push-up': {
+    gifUrl: '/pushup.gif',
+    instructions: [
+      'Place hands on an elevated surface',
+      'Lower your body until chest nearly touches surface',
+      'Push back up to starting position',
+      'Keep your body straight throughout'
+    ]
+  },
+  'Knee Push-ups': {
+    gifUrl: '/kneepushup.gif',
+    instructions: [
+      'Start in plank position with knees on ground',
+      'Lower your body until chest nearly touches ground',
+      'Push back up to starting position',
+      'Keep your back straight'
     ]
   }
 };
