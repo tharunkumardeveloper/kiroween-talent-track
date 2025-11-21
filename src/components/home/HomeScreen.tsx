@@ -440,11 +440,11 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
         <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex justify-around">
             {[
-              { id: 'training', label: 'Training', icon: Zap, color: 'text-yellow-500' },
-              { id: 'discover', label: 'Discover', icon: Search, color: 'text-blue-500' },
-              { id: 'report', label: 'Report', icon: Target, color: 'text-green-500' },
-              { id: 'roadmap', label: 'Roadmap', icon: Calendar, color: 'text-purple-500' }
-            ].map(({ id, label, icon: Icon, color }) => (
+              { id: 'training', label: 'Training', emoji: '⚡' },
+              { id: 'discover', label: 'Discover', emoji: '🔍' },
+              { id: 'report', label: 'Report', emoji: '📊' },
+              { id: 'roadmap', label: 'Roadmap', emoji: '🗺️' }
+            ].map(({ id, label, emoji }) => (
               <Button
                 key={id}
                 variant="ghost"
@@ -452,12 +452,14 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
                 onClick={() => onTabChange(id)}
                 className={`flex flex-col items-center space-y-1 tap-target transition-all duration-200 ${
                   activeTab === id 
-                    ? `${color} scale-110 font-semibold` 
-                    : `${color} opacity-60 hover:opacity-100`
+                    ? 'scale-110 font-semibold' 
+                    : 'opacity-60 hover:opacity-100'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="text-xs">{label}</span>
+                <span className="text-2xl">{emoji}</span>
+                <span className={`text-xs ${activeTab === id ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {label}
+                </span>
               </Button>
             ))}
           </div>
