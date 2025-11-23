@@ -36,11 +36,11 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
   ];
 
   const challengeOverview = [
-    { domain: 'Strength', active: 12, completed: 89, color: 'bg-black text-white' },
-    { domain: 'Endurance', active: 8, completed: 76, color: 'bg-black text-white' },
-    { domain: 'Flexibility', active: 10, completed: 65, color: 'bg-black text-white' },
-    { domain: 'Calisthenics', active: 9, completed: 58, color: 'bg-black text-white' },
-    { domain: 'Para-Athlete', active: 6, completed: 34, color: 'bg-black text-white' }
+    { domain: 'Strength', active: 12, completed: 89, color: 'bg-gradient-to-r from-blue-500 to-blue-600', textColor: 'text-white', iconColor: 'text-blue-500' },
+    { domain: 'Endurance', active: 8, completed: 76, color: 'bg-gradient-to-r from-green-500 to-green-600', textColor: 'text-white', iconColor: 'text-green-500' },
+    { domain: 'Flexibility', active: 10, completed: 65, color: 'bg-gradient-to-r from-purple-500 to-purple-600', textColor: 'text-white', iconColor: 'text-purple-500' },
+    { domain: 'Calisthenics', active: 9, completed: 58, color: 'bg-gradient-to-r from-orange-500 to-orange-600', textColor: 'text-white', iconColor: 'text-orange-500' },
+    { domain: 'Para-Athlete', active: 6, completed: 34, color: 'bg-gradient-to-r from-pink-500 to-pink-600', textColor: 'text-white', iconColor: 'text-pink-500' }
   ];
 
   const athletes = [
@@ -117,16 +117,21 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {systemActivity.map((stat) => (
-              <div key={stat.day} className="flex items-center space-x-3">
-                <span className="text-sm font-medium w-8">{stat.day}</span>
-                <div className="flex-1 bg-secondary rounded-full h-3 overflow-hidden">
+            {systemActivity.map((stat, index) => (
+              <div key={stat.day} className="flex items-center space-x-3 group">
+                <span className="text-sm font-semibold w-10 text-foreground">{stat.day}</span>
+                <div className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
                   <div 
-                    className="bg-primary h-full rounded-full transition-all duration-500"
+                    className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${
+                      stat.value >= 90 ? 'from-green-400 to-green-600' :
+                      stat.value >= 80 ? 'from-blue-400 to-blue-600' :
+                      stat.value >= 70 ? 'from-yellow-400 to-yellow-600' :
+                      'from-orange-400 to-orange-600'
+                    } shadow-md group-hover:shadow-lg`}
                     style={{ width: `${stat.value}%` }}
                   />
                 </div>
-                <span className="text-sm w-8">{stat.value}%</span>
+                <span className="text-sm font-bold w-10 text-right text-foreground">{stat.value}%</span>
               </div>
             ))}
           </div>
@@ -136,19 +141,24 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
       {/* Challenge Overview */}
       <Card className="card-elevated">
         <CardHeader className="pb-3">
-          <CardTitle>Challenge Overview</CardTitle>
+          <CardTitle className="flex items-center">
+            <Target className="w-5 h-5 mr-2 text-primary" />
+            Challenge Overview
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {challengeOverview.map((item) => (
-              <div key={item.domain} className="flex items-center justify-between p-3 rounded-lg border">
+              <div key={item.domain} className={`flex items-center justify-between p-4 rounded-xl ${item.color} shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-[1.02]`}>
                 <div className="flex items-center space-x-3">
-                  <div className="w-4 h-4 rounded-full bg-primary" />
-                  <span className="font-medium">{item.domain}</span>
+                  <div className={`w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center`}>
+                    <Target className={`w-5 h-5 text-white`} />
+                  </div>
+                  <span className={`font-semibold ${item.textColor}`}>{item.domain}</span>
                 </div>
                 <div className="flex space-x-2">
-                  <Badge className="bg-primary text-primary-foreground">{item.active} active</Badge>
-                  <Badge variant="outline">{item.completed} completed</Badge>
+                  <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">{item.active} active</Badge>
+                  <Badge className="bg-white/10 text-white border-white/20 backdrop-blur-sm">{item.completed} completed</Badge>
                 </div>
               </div>
             ))}
@@ -224,7 +234,11 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
             variant={selectedFilter === tag ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
-            className="rounded-full h-8 text-xs bg-white text-black border-black hover:bg-black hover:text-white"
+            className={`rounded-full h-9 text-xs font-medium transition-all duration-300 ${
+              selectedFilter === tag 
+                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg scale-105' 
+                : 'bg-white text-foreground border-2 border-primary/20 hover:border-primary hover:bg-primary/5'
+            }`}
           >
             {tag}
           </Button>
@@ -234,38 +248,43 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
       {/* Athletes List */}
       <div className="space-y-3">
         {athletes.map((athlete) => (
-          <Card key={athlete.id} className="card-elevated">
+          <Card key={athlete.id} className="card-elevated hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold">{athlete.name}</h3>
-                  <p className="text-sm text-muted-foreground">Coach: {athlete.coach}</p>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 text-white flex items-center justify-center font-bold text-sm">
+                    {athlete.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{athlete.name}</h3>
+                    <p className="text-sm text-muted-foreground">Coach: {athlete.coach}</p>
+                  </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Badge className="bg-primary text-primary-foreground">Level {athlete.level}</Badge>
-                  <Badge className={athlete.status === 'Active' ? 'bg-success/10 text-success border-success' : 'bg-destructive/10 text-destructive border-destructive'}>
+                  <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-sm">Level {athlete.level}</Badge>
+                  <Badge className={athlete.status === 'Active' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm' : 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm'}>
                     {athlete.status}
                   </Badge>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4 mb-3 text-center">
-                <div>
-                  <div className="text-sm font-medium">{athlete.challenges}</div>
-                  <div className="text-xs text-muted-foreground">Challenges</div>
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <div className="text-sm font-bold text-blue-600">{athlete.challenges}</div>
+                  <div className="text-xs text-blue-600/70">Challenges</div>
                 </div>
-                <div>
-                  <div className="text-sm font-medium">{athlete.badges}</div>
-                  <div className="text-xs text-muted-foreground">Badges</div>
+                <div className="p-2 rounded-lg bg-yellow-50">
+                  <div className="text-sm font-bold text-yellow-600">{athlete.badges}</div>
+                  <div className="text-xs text-yellow-600/70">Badges</div>
                 </div>
               </div>
 
               <div className="flex space-x-2">
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300">
                   <Eye className="w-4 h-4 mr-1" />
                   View Profile
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300">
                   <BarChart3 className="w-4 h-4 mr-1" />
                   Analytics
                 </Button>
@@ -281,41 +300,57 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
     <div className="space-y-6">
       {/* Coaches List */}
       <div className="space-y-3">
-        {coaches.map((coach) => (
-          <Card key={coach.id} className="card-elevated">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold">{coach.name}</h3>
-                  <p className="text-sm text-muted-foreground">{coach.specialization}</p>
+        {coaches.map((coach, index) => {
+          const gradients = [
+            'from-blue-500 to-blue-600',
+            'from-green-500 to-green-600',
+            'from-purple-500 to-purple-600',
+            'from-orange-500 to-orange-600',
+            'from-pink-500 to-pink-600'
+          ];
+          const gradient = gradients[index % gradients.length];
+          
+          return (
+            <Card key={coach.id} className="card-elevated hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${gradient} text-white flex items-center justify-center font-bold shadow-md`}>
+                      <UserCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{coach.name}</h3>
+                      <p className="text-sm text-muted-foreground">{coach.specialization}</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm">{coach.status}</Badge>
                 </div>
-                <Badge className="bg-success/10 text-success border-success">{coach.status}</Badge>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-3 text-center">
-                <div>
-                  <div className="text-sm font-medium">{coach.athletes}</div>
-                  <div className="text-xs text-muted-foreground">Athletes</div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3 text-center">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100">
+                    <div className="text-lg font-bold text-blue-600">{coach.athletes}</div>
+                    <div className="text-xs text-blue-600/70 font-medium">Athletes</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100">
+                    <div className="text-lg font-bold text-purple-600">{coach.experience}</div>
+                    <div className="text-xs text-purple-600/70 font-medium">Experience</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-medium">{coach.experience}</div>
-                  <div className="text-xs text-muted-foreground">Experience</div>
-                </div>
-              </div>
 
-              <div className="flex space-x-2">
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Eye className="w-4 h-4 mr-1" />
-                  View Details
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Users className="w-4 h-4 mr-1" />
-                  Manage Athletes
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline" className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300">
+                    <Eye className="w-4 h-4 mr-1" />
+                    View Details
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300">
+                    <Users className="w-4 h-4 mr-1" />
+                    Manage Athletes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
@@ -324,11 +359,11 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
     <div className="space-y-6">
       {/* Export Options */}
       <div className="grid grid-cols-2 gap-3">
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300">
           <Download className="w-4 h-4 mr-2" />
           Export System Data
         </Button>
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" className="border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-400 transition-all duration-300">
           <BarChart3 className="w-4 h-4 mr-2" />
           Generate Report
         </Button>
@@ -337,18 +372,21 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
       {/* System Performance */}
       <Card className="card-elevated">
         <CardHeader>
-          <CardTitle>System Performance</CardTitle>
+          <CardTitle className="flex items-center">
+            <Shield className="w-5 h-5 mr-2 text-primary" />
+            System Performance
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 rounded-lg bg-success/10">
-                <div className="text-2xl font-bold text-success">94%</div>
-                <p className="text-sm text-muted-foreground">System Uptime</p>
+              <div className="text-center p-6 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="text-3xl font-bold text-white mb-1">94%</div>
+                <p className="text-sm text-white/90 font-medium">System Uptime</p>
               </div>
-              <div className="text-center p-4 rounded-lg bg-primary/10">
-                <div className="text-2xl font-bold text-primary">8.7</div>
-                <p className="text-sm text-muted-foreground">Avg User Rating</p>
+              <div className="text-center p-6 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="text-3xl font-bold text-white mb-1">8.7</div>
+                <p className="text-sm text-white/90 font-medium">Avg User Rating</p>
               </div>
             </div>
           </div>
@@ -358,21 +396,24 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
       {/* Usage Analytics */}
       <Card className="card-elevated">
         <CardHeader>
-          <CardTitle>Usage Analytics</CardTitle>
+          <CardTitle className="flex items-center">
+            <BarChart3 className="w-5 h-5 mr-2 text-primary" />
+            Usage Analytics
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {[
-              { metric: 'Daily Active Users', value: '142', trend: '+12%' },
-              { metric: 'Challenge Completion Rate', value: '87%', trend: '+5%' },
-              { metric: 'Badge Earning Rate', value: '3.2/user', trend: '+8%' },
-              { metric: 'Coach Engagement', value: '91%', trend: '+3%' }
+              { metric: 'Daily Active Users', value: '142', trend: '+12%', gradient: 'from-blue-500 to-blue-600' },
+              { metric: 'Challenge Completion Rate', value: '87%', trend: '+5%', gradient: 'from-green-500 to-green-600' },
+              { metric: 'Badge Earning Rate', value: '3.2/user', trend: '+8%', gradient: 'from-yellow-500 to-yellow-600' },
+              { metric: 'Coach Engagement', value: '91%', trend: '+3%', gradient: 'from-purple-500 to-purple-600' }
             ].map((item, index) => (
-              <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
-                <span className="font-medium">{item.metric}</span>
-                <div className="flex items-center space-x-2">
-                  <span className="font-bold">{item.value}</span>
-                  <Badge className="bg-success/10 text-success border-success">{item.trend}</Badge>
+              <div key={index} className={`flex justify-between items-center p-4 rounded-xl bg-gradient-to-r ${item.gradient} shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]`}>
+                <span className="font-semibold text-white">{item.metric}</span>
+                <div className="flex items-center space-x-3">
+                  <span className="font-bold text-white text-lg">{item.value}</span>
+                  <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">{item.trend}</Badge>
                 </div>
               </div>
             ))}
@@ -414,6 +455,32 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
 
   return (
     <>
+      {/* Mobile Header - Only visible on mobile */}
+      <div className="sticky top-0 z-50 bg-primary border-b border-primary-dark safe-top lg:hidden">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-white">Welcome, {userName}</h1>
+              <p className="text-sm text-white/80">SAI Admin</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={onSettingsOpen}
+                className="tap-target p-2 rounded-lg hover:bg-white/20 transition-colors text-white"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onProfileOpen}
+                className="tap-target p-2 rounded-lg hover:bg-white/20 transition-colors text-white"
+              >
+                <User className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Content */}
       <div className="px-4 pb-20 lg:pb-8 max-w-2xl lg:max-w-7xl mx-auto pt-6">
         {/* Search Bar */}
@@ -446,25 +513,31 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
       </div>
 
       {/* Bottom Navigation - Hidden on large screens */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-subtle border-t safe-bottom lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t-2 border-primary/10 safe-bottom lg:hidden shadow-lg">
         <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex justify-around">
             {[
-              { id: 'training', label: 'Overview', icon: Shield },
-              { id: 'discover', label: 'Athletes', icon: Users },
-              { id: 'report', label: 'Reports', icon: BarChart3 },
-              { id: 'roadmap', label: 'Coaches', icon: UserCheck }
-            ].map(({ id, label, icon: Icon }) => (
+              { id: 'training', label: 'Overview', icon: Shield, color: 'text-purple-600' },
+              { id: 'discover', label: 'Athletes', icon: Users, color: 'text-blue-600' },
+              { id: 'report', label: 'Reports', icon: BarChart3, color: 'text-green-600' },
+              { id: 'roadmap', label: 'Coaches', icon: UserCheck, color: 'text-orange-600' }
+            ].map(({ id, label, icon: Icon, color }) => (
               <Button
                 key={id}
                 variant="ghost"
                 size="sm"
                 onClick={() => onTabChange(id)}
-                className={`flex flex-col items-center space-y-1 tap-target ${
-                  activeTab === id ? 'text-primary' : 'text-muted-foreground'
+                className={`flex flex-col items-center space-y-1 tap-target transition-all duration-300 ${
+                  activeTab === id 
+                    ? `${color} scale-110 font-semibold` 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <div className={`p-2 rounded-xl transition-all duration-300 ${
+                  activeTab === id ? 'bg-gradient-to-br from-primary/20 to-primary/10 shadow-md' : ''
+                }`}>
+                  <Icon className="w-5 h-5" />
+                </div>
                 <span className="text-xs">{label}</span>
               </Button>
             ))}

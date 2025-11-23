@@ -1268,3 +1268,17 @@
   .animate-thread-grow {
     animation: thread-grow 2s ease-in-out forwards;
   }
+
+/* Custom Animations for Auth Flow */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}

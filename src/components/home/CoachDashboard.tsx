@@ -54,11 +54,11 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
   ];
 
   const challengeDistribution = [
-    { domain: 'Strength', count: 52, color: 'bg-black text-white' },
-    { domain: 'Endurance', count: 44, color: 'bg-black text-white' },
-    { domain: 'Flexibility', count: 38, color: 'bg-black text-white' },
-    { domain: 'Calisthenics', count: 34, color: 'bg-black text-white' },
-    { domain: 'Para-Athlete', count: 21, color: 'bg-black text-white' }
+    { domain: 'Strength', count: 52, color: 'bg-gradient-to-r from-blue-500 to-blue-600', textColor: 'text-white', iconColor: 'text-blue-500' },
+    { domain: 'Endurance', count: 44, color: 'bg-gradient-to-r from-green-500 to-green-600', textColor: 'text-white', iconColor: 'text-green-500' },
+    { domain: 'Flexibility', count: 38, color: 'bg-gradient-to-r from-purple-500 to-purple-600', textColor: 'text-white', iconColor: 'text-purple-500' },
+    { domain: 'Calisthenics', count: 34, color: 'bg-gradient-to-r from-orange-500 to-orange-600', textColor: 'text-white', iconColor: 'text-orange-500' },
+    { domain: 'Para-Athlete', count: 21, color: 'bg-gradient-to-r from-pink-500 to-pink-600', textColor: 'text-white', iconColor: 'text-pink-500' }
   ];
 
   const athletes = [
@@ -129,16 +129,21 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {weeklyActivity.map((stat) => (
-              <div key={stat.day} className="flex items-center space-x-3">
-                <span className="text-sm font-medium w-8">{stat.day}</span>
-                <div className="flex-1 bg-secondary rounded-full h-3 overflow-hidden">
+            {weeklyActivity.map((stat, index) => (
+              <div key={stat.day} className="flex items-center space-x-3 group">
+                <span className="text-sm font-semibold w-10 text-foreground">{stat.day}</span>
+                <div className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
                   <div 
-                    className="bg-primary h-full rounded-full transition-all duration-500"
+                    className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${
+                      stat.value >= 90 ? 'from-green-400 to-green-600' :
+                      stat.value >= 80 ? 'from-blue-400 to-blue-600' :
+                      stat.value >= 70 ? 'from-yellow-400 to-yellow-600' :
+                      'from-orange-400 to-orange-600'
+                    } shadow-md group-hover:shadow-lg`}
                     style={{ width: `${stat.value}%` }}
                   />
                 </div>
-                <span className="text-sm w-8">{stat.value}%</span>
+                <span className="text-sm font-bold w-10 text-right text-foreground">{stat.value}%</span>
               </div>
             ))}
           </div>
@@ -148,17 +153,22 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
       {/* Challenge Distribution */}
       <Card className="card-elevated">
         <CardHeader className="pb-3">
-          <CardTitle>Challenge Distribution</CardTitle>
+          <CardTitle className="flex items-center">
+            <Target className="w-5 h-5 mr-2 text-primary" />
+            Challenge Distribution
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {challengeDistribution.map((item) => (
-              <div key={item.domain} className="flex items-center justify-between p-3 rounded-lg border">
+              <div key={item.domain} className={`flex items-center justify-between p-4 rounded-xl ${item.color} shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-[1.02]`}>
                 <div className="flex items-center space-x-3">
-                  <div className="w-4 h-4 rounded-full bg-primary" />
-                  <span className="font-medium">{item.domain}</span>
+                  <div className={`w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center`}>
+                    <Target className={`w-5 h-5 text-white`} />
+                  </div>
+                  <span className={`font-semibold ${item.textColor}`}>{item.domain}</span>
                 </div>
-                <Badge className="bg-primary text-primary-foreground">{item.count} completed</Badge>
+                <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">{item.count} completed</Badge>
               </div>
             ))}
           </div>
@@ -177,7 +187,11 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
             variant={selectedFilter === tag ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
-            className="rounded-full h-8 text-xs bg-white text-black border-black hover:bg-black hover:text-white"
+            className={`rounded-full h-9 text-xs font-medium transition-all duration-300 ${
+              selectedFilter === tag 
+                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-md hover:shadow-lg scale-105' 
+                : 'bg-white text-foreground border-2 border-primary/20 hover:border-primary hover:bg-primary/5'
+            }`}
           >
             {tag}
           </Button>
@@ -187,41 +201,46 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
       {/* Athletes List */}
       <div className="space-y-3">
         {athletes.map((athlete) => (
-          <Card key={athlete.id} className="card-elevated">
+          <Card key={athlete.id} className="card-elevated hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold">{athlete.name}</h3>
-                  <p className="text-sm text-muted-foreground">{athlete.email}</p>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 text-white flex items-center justify-center font-bold text-sm">
+                    {athlete.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{athlete.name}</h3>
+                    <p className="text-sm text-muted-foreground">{athlete.email}</p>
+                  </div>
                 </div>
-                <Badge className="bg-primary text-primary-foreground">Level {athlete.level}</Badge>
+                <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-sm">Level {athlete.level}</Badge>
               </div>
               
               <div className="grid grid-cols-3 gap-4 mb-3 text-center">
-                <div>
-                  <div className="text-sm font-medium">{athlete.challenges}</div>
-                  <div className="text-xs text-muted-foreground">Challenges</div>
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <div className="text-sm font-bold text-blue-600">{athlete.challenges}</div>
+                  <div className="text-xs text-blue-600/70">Challenges</div>
                 </div>
-                <div>
-                  <div className="text-sm font-medium">{athlete.badges}</div>
-                  <div className="text-xs text-muted-foreground">Badges</div>
+                <div className="p-2 rounded-lg bg-yellow-50">
+                  <div className="text-sm font-bold text-yellow-600">{athlete.badges}</div>
+                  <div className="text-xs text-yellow-600/70">Badges</div>
                 </div>
-                <div>
-                  <div className="text-sm font-medium">{athlete.lastActivity}</div>
-                  <div className="text-xs text-muted-foreground">Last Active</div>
+                <div className="p-2 rounded-lg bg-green-50">
+                  <div className="text-sm font-bold text-green-600">{athlete.lastActivity}</div>
+                  <div className="text-xs text-green-600/70">Last Active</div>
                 </div>
               </div>
 
               <div className="flex space-x-2">
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300">
                   <Eye className="w-4 h-4 mr-1" />
                   View
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300">
                   <Target className="w-4 h-4 mr-1" />
                   Assign
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300">
                   <Send className="w-4 h-4 mr-1" />
                   Message
                 </Button>
@@ -236,7 +255,7 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
   const renderChallengesContent = () => (
     <div className="space-y-6">
       {/* Add Challenge Button */}
-      <Button className="w-full btn-hero" size="lg">
+      <Button className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]" size="lg">
         <Plus className="w-5 h-5 mr-2" />
         Create New Challenge
       </Button>
@@ -251,21 +270,21 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-              <div className="text-2xl mb-1">🎥</div>
-              <span className="text-xs">Exercise Videos</span>
+            <Button variant="outline" className="h-24 flex flex-col items-center justify-center border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300 hover:scale-105">
+              <div className="text-3xl mb-2">🎥</div>
+              <span className="text-xs font-medium text-blue-600">Exercise Videos</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-              <div className="text-2xl mb-1">📋</div>
-              <span className="text-xs">Workout Plans</span>
+            <Button variant="outline" className="h-24 flex flex-col items-center justify-center border-2 border-green-200 hover:bg-green-50 hover:border-green-400 transition-all duration-300 hover:scale-105">
+              <div className="text-3xl mb-2">📋</div>
+              <span className="text-xs font-medium text-green-600">Workout Plans</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-              <div className="text-2xl mb-1">📊</div>
-              <span className="text-xs">Progress Templates</span>
+            <Button variant="outline" className="h-24 flex flex-col items-center justify-center border-2 border-purple-200 hover:bg-purple-50 hover:border-purple-400 transition-all duration-300 hover:scale-105">
+              <div className="text-3xl mb-2">📊</div>
+              <span className="text-xs font-medium text-purple-600">Progress Templates</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-              <div className="text-2xl mb-1">📚</div>
-              <span className="text-xs">Training Guides</span>
+            <Button variant="outline" className="h-24 flex flex-col items-center justify-center border-2 border-orange-200 hover:bg-orange-50 hover:border-orange-400 transition-all duration-300 hover:scale-105">
+              <div className="text-3xl mb-2">📚</div>
+              <span className="text-xs font-medium text-orange-600">Training Guides</span>
             </Button>
           </div>
         </CardContent>
@@ -274,17 +293,24 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
       {/* Recent Challenges */}
       <Card className="card-elevated">
         <CardHeader>
-          <CardTitle>Recent Challenges</CardTitle>
+          <CardTitle className="flex items-center">
+            <Calendar className="w-5 h-5 mr-2 text-primary" />
+            Recent Challenges
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {['Upper Body Strength', 'Cardio Endurance', 'Flexibility Focus'].map((challenge, index) => (
-              <div key={challenge} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
+            {[
+              { name: 'Upper Body Strength', count: 12, color: 'from-blue-500 to-blue-600' },
+              { name: 'Cardio Endurance', count: 10, color: 'from-green-500 to-green-600' },
+              { name: 'Flexibility Focus', count: 8, color: 'from-purple-500 to-purple-600' }
+            ].map((challenge) => (
+              <div key={challenge.name} className={`flex items-center justify-between p-4 rounded-xl bg-gradient-to-r ${challenge.color} shadow-md hover:shadow-lg transition-all duration-300`}>
                 <div>
-                  <h4 className="font-medium">{challenge}</h4>
-                  <p className="text-sm text-muted-foreground">{12 - index * 2} athletes assigned</p>
+                  <h4 className="font-semibold text-white">{challenge.name}</h4>
+                  <p className="text-sm text-white/80">{challenge.count} athletes assigned</p>
                 </div>
-                <Button size="sm" variant="outline">Edit</Button>
+                <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">Edit</Button>
               </div>
             ))}
           </div>
@@ -297,11 +323,11 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
     <div className="space-y-6">
       {/* Export Options */}
       <div className="grid grid-cols-2 gap-3">
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300">
           <Download className="w-4 h-4 mr-2" />
           Export CSV
         </Button>
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" className="border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all duration-300">
           <Download className="w-4 h-4 mr-2" />
           Export PDF
         </Button>
@@ -310,18 +336,21 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
       {/* Performance Overview */}
       <Card className="card-elevated">
         <CardHeader>
-          <CardTitle>Performance Overview</CardTitle>
+          <CardTitle className="flex items-center">
+            <Trophy className="w-5 h-5 mr-2 text-primary" />
+            Performance Overview
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 rounded-lg bg-success/10">
-                <div className="text-2xl font-bold text-success">87%</div>
-                <p className="text-sm text-muted-foreground">Avg Completion Rate</p>
+              <div className="text-center p-6 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="text-3xl font-bold text-white mb-1">87%</div>
+                <p className="text-sm text-white/90 font-medium">Avg Completion Rate</p>
               </div>
-              <div className="text-center p-4 rounded-lg bg-primary/10">
-                <div className="text-2xl font-bold text-primary">6.2</div>
-                <p className="text-sm text-muted-foreground">Avg Level</p>
+              <div className="text-center p-6 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="text-3xl font-bold text-white mb-1">6.2</div>
+                <p className="text-sm text-white/90 font-medium">Avg Level</p>
               </div>
             </div>
           </div>
@@ -331,19 +360,25 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
       {/* Domain Strengths */}
       <Card className="card-elevated">
         <CardHeader>
-          <CardTitle>Domain Analysis</CardTitle>
+          <CardTitle className="flex items-center">
+            <Activity className="w-5 h-5 mr-2 text-primary" />
+            Domain Analysis
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {challengeDistribution.map((domain) => (
               <div key={domain.domain} className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>{domain.domain}</span>
-                  <span>{Math.round((domain.count / 156) * 100)}%</span>
+                <div className="flex justify-between text-sm font-medium">
+                  <span className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${domain.color}`} />
+                    <span>{domain.domain}</span>
+                  </span>
+                  <span className="font-bold">{Math.round((domain.count / 156) * 100)}%</span>
                 </div>
-                <div className="w-full bg-secondary rounded-full h-2">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
                   <div 
-                    className={`h-2 rounded-full ${domain.color}`}
+                    className={`h-full rounded-full ${domain.color} shadow-md transition-all duration-500`}
                     style={{ width: `${(domain.count / 156) * 100}%` }}
                   />
                 </div>
@@ -436,6 +471,32 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
 
   return (
     <>
+      {/* Mobile Header - Only visible on mobile */}
+      <div className="sticky top-0 z-50 bg-primary border-b border-primary-dark safe-top lg:hidden">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-white">Welcome, {userName}</h1>
+              <p className="text-sm text-white/80">Coach</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={onSettingsOpen}
+                className="tap-target p-2 rounded-lg hover:bg-white/20 transition-colors text-white"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onProfileOpen}
+                className="tap-target p-2 rounded-lg hover:bg-white/20 transition-colors text-white"
+              >
+                <User className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Content */}
       <div className="px-4 pb-20 lg:pb-8 max-w-2xl lg:max-w-7xl mx-auto pt-6">
         {/* Search Bar */}
@@ -468,25 +529,31 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
       </div>
 
       {/* Bottom Navigation - Hidden on large screens */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-subtle border-t safe-bottom lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t-2 border-primary/10 safe-bottom lg:hidden shadow-lg">
         <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex justify-around">
             {[
-              { id: 'training', label: 'Dashboard', icon: Zap },
-              { id: 'discover', label: 'Athletes', icon: Users },
-              { id: 'report', label: 'Reports', icon: Target },
-              { id: 'roadmap', label: 'Challenges', icon: Calendar }
-            ].map(({ id, label, icon: Icon }) => (
+              { id: 'training', label: 'Dashboard', icon: Zap, color: 'text-blue-600' },
+              { id: 'discover', label: 'Athletes', icon: Users, color: 'text-green-600' },
+              { id: 'report', label: 'Reports', icon: Target, color: 'text-purple-600' },
+              { id: 'roadmap', label: 'Challenges', icon: Calendar, color: 'text-orange-600' }
+            ].map(({ id, label, icon: Icon, color }) => (
               <Button
                 key={id}
                 variant="ghost"
                 size="sm"
                 onClick={() => onTabChange(id)}
-                className={`flex flex-col items-center space-y-1 tap-target ${
-                  activeTab === id ? 'text-primary' : 'text-muted-foreground'
+                className={`flex flex-col items-center space-y-1 tap-target transition-all duration-300 ${
+                  activeTab === id 
+                    ? `${color} scale-110 font-semibold` 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <div className={`p-2 rounded-xl transition-all duration-300 ${
+                  activeTab === id ? 'bg-gradient-to-br from-primary/20 to-primary/10 shadow-md' : ''
+                }`}>
+                  <Icon className="w-5 h-5" />
+                </div>
                 <span className="text-xs">{label}</span>
               </Button>
             ))}

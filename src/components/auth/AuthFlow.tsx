@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { User, Users, Shield } from 'lucide-react';
+import { User, Users, Shield, Zap, ChevronRight } from 'lucide-react';
 
 interface AuthFlowProps {
   onLogin: (role: 'athlete' | 'coach' | 'admin') => void;
@@ -17,108 +17,217 @@ const AuthFlow = ({ onLogin }: AuthFlowProps) => {
       label: 'Athlete',
       icon: User,
       description: 'Track your fitness journey',
-      color: 'from-blue-500 to-blue-600'
+      gradient: 'from-purple-600 to-purple-800'
     },
     { 
       role: 'coach' as const, 
       label: 'Coach',
       icon: Users,
       description: 'Manage and guide athletes',
-      color: 'from-green-500 to-green-600'
+      gradient: 'from-purple-700 to-purple-900'
     },
     { 
       role: 'admin' as const, 
       label: 'SAI Admin',
       icon: Shield,
       description: 'Oversee all operations',
-      color: 'from-purple-500 to-purple-600'
+      gradient: 'from-purple-800 to-purple-950'
     },
   ];
 
   const handleRoleSelect = (role: 'athlete' | 'coach' | 'admin') => {
     setSelectedRole(role);
     setIsLoading(true);
-    // Simulate loading
     setTimeout(() => {
       onLogin(role);
     }, 800);
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 flex flex-col items-center justify-center p-3 sm:p-6 safe-top safe-bottom overflow-hidden">
-      <div className="w-full max-w-sm sm:max-w-2xl lg:max-w-4xl flex flex-col h-full justify-center py-4">
-        {/* Header - Compact on mobile */}
-        <div className="text-center mb-4 sm:mb-10 lg:mb-12 animate-fade-in flex-shrink-0">
-          <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold text-white mb-1 sm:mb-4 text-shadow">
+    <>
+      {/* Desktop View - Keep original design */}
+      <div className="hidden sm:flex h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 items-center justify-center p-6 safe-top safe-bottom overflow-hidden">
+        <div className="w-full max-w-3xl lg:max-w-5xl">
+          {/* Header */}
+          <div className="text-center mb-12 animate-fade-in">
+            <div className="inline-block mb-6">
+              <Zap className="w-16 h-16 text-white mx-auto" />
+            </div>
+            <h1 className="text-5xl lg:text-6xl font-bold text-white mb-3">
+              TalentTrack
+            </h1>
+            <p className="text-white/90 text-xl lg:text-2xl mb-2">
+              Track. Train. Transform.
+            </p>
+            <p className="text-white/70 text-base">
+              Select your role to continue
+            </p>
+          </div>
+
+          {/* Role Cards */}
+          <div className="grid grid-cols-3 gap-6 animate-slide-up">
+            {roles.map((roleData, index) => {
+              const Icon = roleData.icon;
+              const isSelected = selectedRole === roleData.role;
+              const isDisabled = isLoading && !isSelected;
+              
+              return (
+                <Card
+                  key={roleData.role}
+                  className={`relative backdrop-blur-sm bg-white/10 border-2 transition-all duration-300 cursor-pointer group ${
+                    isSelected 
+                      ? 'border-white/50 bg-white/20 scale-105 shadow-2xl' 
+                      : 'border-white/20 hover:border-white/40 hover:bg-white/15'
+                  } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => !isLoading && handleRoleSelect(roleData.role)}
+                >
+                  <CardContent className="p-8 text-center">
+                    <div className={`w-20 h-20 mx-auto mb-6 rounded-full bg-white/20 flex items-center justify-center transition-transform duration-300 ${
+                      isSelected ? 'scale-110' : 'group-hover:scale-105'
+                    }`}>
+                      <Icon className="w-10 h-10 text-white" />
+                    </div>
+                    
+                    <h3 className="text-2xl font-bold text-white mb-3">
+                      {roleData.label}
+                    </h3>
+                    
+                    <p className="text-white/80 text-base mb-6">
+                      {roleData.description}
+                    </p>
+                    
+                    <Button
+                      className={`w-full h-12 font-semibold transition-all duration-300 text-base ${
+                        isSelected 
+                          ? 'bg-white text-purple-900 hover:bg-white/90' 
+                          : 'bg-white/20 text-white hover:bg-white/30 border-2 border-white/30'
+                      }`}
+                      disabled={isLoading}
+                    >
+                      {isSelected && isLoading ? (
+                        <span className="flex items-center justify-center gap-1.5">
+                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Loading...
+                        </span>
+                      ) : (
+                        'Continue'
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="text-center mt-10 text-white/50 text-sm animate-fade-in" style={{ animationDelay: '300ms' }}>
+            <p>Powered by AI • Trusted by Athletes</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile View - New Modern Design */}
+      <div className="sm:hidden h-screen bg-gradient-to-b from-purple-900 via-purple-800 to-purple-950 flex flex-col safe-top safe-bottom overflow-hidden">
+        {/* Top Section with Logo and Title */}
+        <div className="flex-shrink-0 pt-12 pb-6 px-6 text-center animate-fade-in">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm mb-4 shadow-lg">
+            <Zap className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
             TalentTrack
           </h1>
-          <p className="text-white/90 text-base sm:text-xl lg:text-2xl mb-0.5 sm:mb-2">
+          <p className="text-white/80 text-sm font-medium">
             Track. Train. Transform.
-          </p>
-          <p className="text-white/70 text-xs sm:text-base lg:text-lg">
-            Select your role to continue
           </p>
         </div>
 
-        {/* Role Selection Cards - Optimized for mobile viewport */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 lg:gap-6 animate-slide-up max-w-sm sm:max-w-none mx-auto w-full flex-shrink-0">
-          {roles.map((roleData) => {
-            const Icon = roleData.icon;
-            const isSelected = selectedRole === roleData.role;
-            const isDisabled = isLoading && !isSelected;
-            
-            return (
-              <Card
-                key={roleData.role}
-                className={`backdrop-blur-subtle bg-white/10 border-white/20 active:scale-95 sm:hover:bg-white/20 transition-all duration-300 cursor-pointer group ${
-                  isSelected ? 'ring-4 ring-white/50 scale-[1.02] sm:scale-105' : ''
-                } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onClick={() => !isLoading && handleRoleSelect(roleData.role)}
-              >
-                <CardContent className="p-4 sm:p-7 lg:p-8 text-center">
-                  {/* Icon with gradient background - Smaller on mobile */}
-                  <div className={`w-12 h-12 sm:w-18 sm:h-18 lg:w-20 lg:h-20 mx-auto mb-2 sm:mb-5 lg:mb-6 rounded-full bg-gradient-to-br ${roleData.color} flex items-center justify-center transform sm:group-hover:scale-110 transition-transform duration-300 ${
-                    isSelected ? 'animate-pulse' : ''
-                  }`}>
-                    <Icon className="w-6 h-6 sm:w-9 sm:h-9 lg:w-10 lg:h-10 text-white" />
-                  </div>
+        {/* Role Selection Cards - Scrollable */}
+        <div className="flex-1 px-5 pb-6 overflow-y-auto">
+          <p className="text-white/70 text-xs font-medium mb-4 text-center uppercase tracking-wider">
+            Choose Your Role
+          </p>
+          
+          <div className="space-y-3 animate-slide-up">
+            {roles.map((roleData, index) => {
+              const Icon = roleData.icon;
+              const isSelected = selectedRole === roleData.role;
+              const isDisabled = isLoading && !isSelected;
+              
+              return (
+                <div
+                  key={roleData.role}
+                  className={`relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                    isSelected ? 'scale-[1.02]' : 'active:scale-[0.98]'
+                  } ${isDisabled ? 'opacity-50' : ''}`}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => !isLoading && handleRoleSelect(roleData.role)}
+                >
+                  {/* Gradient Background */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${roleData.gradient} opacity-90`} />
                   
-                  {/* Role Label - Smaller on mobile */}
-                  <h3 className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-3">
-                    {roleData.label}
-                  </h3>
+                  {/* Glass Effect Overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/5" />
                   
-                  {/* Description - Hidden on very small screens, visible on slightly larger */}
-                  <p className="text-white/80 text-[10px] sm:text-sm mb-3 sm:mb-6 leading-tight sm:leading-normal hidden xs:block sm:block">
-                    {roleData.description}
-                  </p>
-                  
-                  {/* Button - Compact on mobile */}
-                  <Button
-                    className={`w-full h-10 sm:h-12 bg-white text-purple-900 hover:bg-gray-100 font-semibold transition-all duration-300 text-sm sm:text-base tap-target ${
-                      isSelected ? 'bg-green-500 text-white hover:bg-green-600' : ''
-                    }`}
-                    disabled={isLoading}
-                  >
-                    {isSelected && isLoading ? (
-                      <span className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  {/* Content */}
+                  <div className="relative p-5 flex items-center gap-4">
+                    {/* Icon Circle */}
+                    <div className={`flex-shrink-0 w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 ${
+                      isSelected ? 'scale-110 bg-white/30' : ''
+                    }`}>
+                      <Icon className="w-7 h-7 text-white" />
+                    </div>
+                    
+                    {/* Text Content */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-white mb-0.5">
+                        {roleData.label}
+                      </h3>
+                      <p className="text-white/90 text-xs leading-relaxed">
+                        {roleData.description}
+                      </p>
+                    </div>
+                    
+                    {/* Arrow or Loading */}
+                    <div className="flex-shrink-0">
+                      {isSelected && isLoading ? (
+                        <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Loading...
-                      </span>
-                    ) : (
-                      'Continue'
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
+                      ) : (
+                        <ChevronRight className={`w-6 h-6 text-white transition-transform duration-300 ${
+                          isSelected ? 'translate-x-1' : ''
+                        }`} />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Selection Indicator */}
+                  {isSelected && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white animate-pulse" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bottom Footer */}
+        <div className="flex-shrink-0 pb-6 px-6 text-center animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <div className="inline-flex items-center gap-2 text-white/50 text-xs">
+            <div className="w-1.5 h-1.5 rounded-full bg-white/50" />
+            <span>Powered by AI</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-white/50" />
+            <span>Trusted by Athletes</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-white/50" />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

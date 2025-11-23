@@ -215,11 +215,11 @@ const Index = () => {
 
   // Show special pages first (before activity detail check)
   if (appState === 'profile') {
-    return <ProfilePage userName={userName} onBack={handleBackToHome} onLogout={() => setAppState('auth')} />;
+    return <ProfilePage userName={userName} userRole={userRole} onBack={handleBackToHome} onLogout={() => setAppState('auth')} />;
   }
 
   if (appState === 'settings') {
-    return <SettingsPage onBack={handleBackToHome} />;
+    return <SettingsPage onBack={handleBackToHome} userName={userName} userRole={userRole} />;
   }
 
   if (appState === 'badges') {

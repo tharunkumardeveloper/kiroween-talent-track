@@ -15,17 +15,19 @@ import {
   Coins,
   Scale,
   Ruler,
-  Target
+  Target,
+  Shield
 } from 'lucide-react';
 
 interface ProfilePageProps {
   userName: string;
   userEmail?: string;
+  userRole?: 'athlete' | 'coach' | 'admin';
   onBack: () => void;
   onLogout?: () => void;
 }
 
-const ProfilePage = ({ userName, userEmail = "user@example.com", onBack, onLogout }: ProfilePageProps) => {
+const ProfilePage = ({ userName, userEmail = "user@example.com", userRole = 'athlete', onBack, onLogout }: ProfilePageProps) => {
   const [profileData, setProfileData] = useState({
     name: userName,
     email: userEmail,
@@ -96,61 +98,65 @@ const ProfilePage = ({ userName, userEmail = "user@example.com", onBack, onLogou
             </CardContent>
           </Card>
 
-          {/* Level Progress */}
-          <Card className="card-elevated">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Target className="w-5 h-5 mr-2 text-primary" />
-                Level Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold">Level {userLevel.level}</span>
-                  <span className="text-sm text-muted-foreground">{userLevel.progress}%</span>
+          {/* Level Progress - Only for Athletes */}
+          {userRole === 'athlete' && (
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Target className="w-5 h-5 mr-2 text-primary" />
+                  Level Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold">Level {userLevel.level}</span>
+                    <span className="text-sm text-muted-foreground">{userLevel.progress}%</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-3">
+                    <div 
+                      className="bg-primary h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${userLevel.progress}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{userLevel.xp} XP</span>
+                    <span>{userLevel.nextLevelXp} XP</span>
+                  </div>
                 </div>
-                <div className="w-full bg-secondary rounded-full h-3">
-                  <div 
-                    className="bg-primary h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${userLevel.progress}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{userLevel.xp} XP</span>
-                  <span>{userLevel.nextLevelXp} XP</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Achievements Summary */}
-          <Card className="card-elevated">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Trophy className="w-5 h-5 mr-2 text-warning" />
-                Achievements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 rounded-lg bg-warning/10">
-                  <Badge className="w-8 h-8 rounded-full bg-warning text-warning-foreground p-0 flex items-center justify-center mb-2">
-                    <Trophy className="w-4 h-4" />
-                  </Badge>
-                  <div className="text-2xl font-bold text-warning">{achievements.badges}</div>
-                  <div className="text-xs text-muted-foreground">Badges</div>
+          {/* Achievements Summary - Only for Athletes */}
+          {userRole === 'athlete' && (
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Trophy className="w-5 h-5 mr-2 text-warning" />
+                  Achievements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 rounded-lg bg-warning/10">
+                    <Badge className="w-8 h-8 rounded-full bg-warning text-warning-foreground p-0 flex items-center justify-center mb-2">
+                      <Trophy className="w-4 h-4" />
+                    </Badge>
+                    <div className="text-2xl font-bold text-warning">{achievements.badges}</div>
+                    <div className="text-xs text-muted-foreground">Badges</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-primary/10">
+                    <Badge className="w-8 h-8 rounded-full bg-primary text-primary-foreground p-0 flex items-center justify-center mb-2">
+                      <Coins className="w-4 h-4" />
+                    </Badge>
+                    <div className="text-2xl font-bold text-primary">{achievements.coins}</div>
+                    <div className="text-xs text-muted-foreground">Coins</div>
+                  </div>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-primary/10">
-                  <Badge className="w-8 h-8 rounded-full bg-primary text-primary-foreground p-0 flex items-center justify-center mb-2">
-                    <Coins className="w-4 h-4" />
-                  </Badge>
-                  <div className="text-2xl font-bold text-primary">{achievements.coins}</div>
-                  <div className="text-xs text-muted-foreground">Coins</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right Column - Forms and Settings */}
@@ -216,50 +222,89 @@ const ProfilePage = ({ userName, userEmail = "user@example.com", onBack, onLogou
             </CardContent>
           </Card>
 
-          {/* Fitness Stats */}
-          <Card className="card-elevated">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Target className="w-5 h-5 mr-2 text-success" />
-              Fitness Stats
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="height">Height</Label>
-                <div className="relative">
-                  <Ruler className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="height"
-                    value={profileData.height}
-                    onChange={(e) => handleInputChange('height', e.target.value)}
-                    className="pl-10 mt-1"
-                  />
+          {/* Fitness Stats - Only for Athletes */}
+          {userRole === 'athlete' && (
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Target className="w-5 h-5 mr-2 text-success" />
+                  Fitness Stats
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="height">Height</Label>
+                    <div className="relative">
+                      <Ruler className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="height"
+                        value={profileData.height}
+                        onChange={(e) => handleInputChange('height', e.target.value)}
+                        className="pl-10 mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="weight">Weight</Label>
+                    <div className="relative">
+                      <Scale className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="weight"
+                        value={profileData.weight}
+                        onChange={(e) => handleInputChange('weight', e.target.value)}
+                        className="pl-10 mt-1"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="weight">Weight</Label>
-                <div className="relative">
-                  <Scale className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="weight"
-                    value={profileData.weight}
-                    onChange={(e) => handleInputChange('weight', e.target.value)}
-                    className="pl-10 mt-1"
-                  />
+                <div className="p-4 bg-info/10 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Current BMI</span>
+                    <span className="text-lg font-bold text-info">{profileData.bmi}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Normal Weight</p>
                 </div>
-              </div>
-            </div>
-            <div className="p-4 bg-info/10 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Current BMI</span>
-                <span className="text-lg font-bold text-info">{profileData.bmi}</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Normal Weight</p>
-            </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Role Information - For Coaches and Admins */}
+          {(userRole === 'coach' || userRole === 'admin') && (
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="w-5 h-5 mr-2 text-primary" />
+                  Role Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="p-4 bg-primary/10 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium">Role</span>
+                    <span className="text-lg font-bold text-primary capitalize">{userRole}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {userRole === 'coach' 
+                      ? 'Manage athletes and create training programs' 
+                      : 'System administration and oversight'}
+                  </p>
+                </div>
+                {userRole === 'coach' && (
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="p-3 bg-secondary rounded-lg">
+                      <div className="text-xl font-bold">28</div>
+                      <div className="text-xs text-muted-foreground">Athletes</div>
+                    </div>
+                    <div className="p-3 bg-secondary rounded-lg">
+                      <div className="text-xl font-bold">156</div>
+                      <div className="text-xs text-muted-foreground">Challenges</div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Save Button */}
           <Button className="w-full" size="lg">

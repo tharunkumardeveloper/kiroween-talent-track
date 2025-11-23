@@ -7,8 +7,6 @@ import {
   ArrowLeft, 
   Bell, 
   Moon, 
-  UserX, 
-  LogOut, 
   Info,
   Shield,
   HelpCircle
@@ -16,9 +14,11 @@ import {
 
 interface SettingsPageProps {
   onBack: () => void;
+  userName?: string;
+  userRole?: 'athlete' | 'coach' | 'admin';
 }
 
-const SettingsPage = ({ onBack }: SettingsPageProps) => {
+const SettingsPage = ({ onBack, userName = 'User', userRole = 'athlete' }: SettingsPageProps) => {
   const [settings, setSettings] = useState({
     notifications: true,
     darkMode: false,
@@ -49,6 +49,26 @@ const SettingsPage = ({ onBack }: SettingsPageProps) => {
       </div>
 
       <div className="px-4 pb-8 max-w-4xl mx-auto pt-6">
+        {/* User Profile Section */}
+        <Card className="card-elevated mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold">
+                {userName.split(' ').map(n => n[0]).join('')}
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold">{userName}</h2>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm text-muted-foreground capitalize">{userRole}</p>
+                  {userRole === 'admin' && (
+                    <Shield className="w-4 h-4 text-primary" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Two Column Layout on Desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column */}
@@ -158,27 +178,7 @@ const SettingsPage = ({ onBack }: SettingsPageProps) => {
 
         {/* Right Column */}
         <div className="space-y-6">
-          {/* Account Management */}
-          <Card className="card-elevated">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="w-5 h-5 mr-2" />
-              Account Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start text-warning hover:bg-warning/10">
-              <UserX className="w-4 h-4 mr-3" />
-              Deactivate Account
-            </Button>
-            <Button variant="outline" className="w-full justify-start text-destructive hover:bg-destructive/10">
-              <LogOut className="w-4 h-4 mr-3" />
-              Logout
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Support */}
+          {/* Support */}
         <Card className="card-elevated">
           <CardHeader>
             <CardTitle className="flex items-center">
