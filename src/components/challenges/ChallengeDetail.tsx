@@ -234,10 +234,10 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Challenge Cover Image */}
-      <Card className="overflow-hidden">
-        <div className="h-48 relative bg-gradient-to-br from-primary/20 to-primary/5">
+    <div className="space-y-6 w-full">
+      {/* Challenge Cover Image - Hero Section */}
+      <Card className="overflow-hidden card-elevated">
+        <div className="h-64 md:h-80 lg:h-96 relative bg-gradient-to-br from-primary/20 to-primary/5">
           <img
             src={getChallengeImage()}
             alt={challenge.name}
@@ -248,122 +248,167 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
               e.currentTarget.style.display = 'none';
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-4 left-4 right-4 z-10">
-            <div className="flex items-center gap-3">
-              <div className="text-5xl">{challenge.badge.icon}</div>
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-1">{challenge.name}</h1>
-                <p className="text-white/90 text-sm">{challenge.description}</p>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          
+          {/* Badges overlay */}
+          <div className="absolute top-6 right-6 z-20 flex gap-3">
+            <Badge className={`${getCategoryColor()} text-white shadow-lg text-base px-4 py-1.5`}>
+              {challenge.category}
+            </Badge>
+            <Badge className={`${getDifficultyColor()} text-white shadow-lg text-base px-4 py-1.5`}>
+              {challenge.difficulty}
+            </Badge>
+          </div>
+
+          {/* Title Section */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 p-8">
+            <div className="flex items-center gap-5">
+              <div className="text-6xl md:text-7xl">{challenge.badge.icon}</div>
+              <div className="flex-1">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">{challenge.name}</h1>
+                <p className="text-white/90 text-base md:text-lg mb-3">{challenge.description}</p>
+                <div className="flex items-center gap-4 text-white/80">
+                  <span className="text-sm md:text-base">👥 {challenge.participants.toLocaleString()} participants</span>
+                  <span className="text-sm md:text-base">🎯 {totalWorkouts} workouts</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Challenge Info */}
+      {/* Progress Section */}
       <Card className="card-elevated">
-        <CardHeader className="pb-3">
-          <div className="flex flex-wrap gap-2">
-            <Badge className={`${getCategoryColor()} text-white`}>
-              {challenge.category}
-            </Badge>
-            <Badge className={`${getDifficultyColor()} text-white`}>
-              {challenge.difficulty}
-            </Badge>
-            <Badge variant="outline">
-              {challenge.participants} participants
-            </Badge>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          {/* Progress */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">
-                Progress: {completedWorkouts}/{totalWorkouts} workouts
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {Math.round(progress)}%
-              </span>
+        <CardContent className="p-6 md:p-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold mb-1">Your Progress</h2>
+              <p className="text-muted-foreground">
+                {completedWorkouts} of {totalWorkouts} workouts completed
+              </p>
             </div>
-            <Progress value={progress} className="h-2" />
+            <div className="text-right">
+              <div className="text-3xl md:text-4xl font-bold text-primary">
+                {Math.round(progress)}%
+              </div>
+              <p className="text-sm text-muted-foreground">Complete</p>
+            </div>
           </div>
+          <Progress value={progress} className="h-3 md:h-4" />
         </CardContent>
       </Card>
 
-      {/* Workouts - Grid on larger screens */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Target className="w-5 h-5" />
-          Workout Plan
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* Workouts Section - Enhanced Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
+            <Target className="w-6 h-6 md:w-7 md:h-7" />
+            Workout Plan
+          </h2>
+          <Badge variant="outline" className="text-base px-3 py-1">
+            {completedWorkouts}/{totalWorkouts}
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {challenge.workouts.map((workout, index) => (
-          <Card
-            key={index}
-            className={`${
-              workout.completed
-                ? 'bg-success/10 border-success/20'
-                : 'bg-card'
-            }`}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {workout.completed ? (
-                    <CheckCircle className="w-6 h-6 text-success" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full border-2 border-muted-foreground flex items-center justify-center text-xs font-bold">
-                      {index + 1}
+            <Card
+              key={index}
+              className={`transition-all duration-300 hover:shadow-lg ${
+                workout.completed
+                  ? 'bg-success/10 border-success/30 shadow-success/20'
+                  : 'bg-card hover:border-primary/50'
+              }`}
+            >
+              <CardContent className="p-5">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      {workout.completed ? (
+                        <CheckCircle className="w-7 h-7 text-success flex-shrink-0" />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full border-2 border-primary flex items-center justify-center text-sm font-bold text-primary flex-shrink-0">
+                          {index + 1}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-semibold text-base md:text-lg">
+                          {workout.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Target: {workout.targetReps} reps
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {workout.currentReps > 0 && !workout.completed && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Progress</span>
+                        <span>{workout.currentReps}/{workout.targetReps}</span>
+                      </div>
+                      <Progress 
+                        value={(workout.currentReps / workout.targetReps) * 100} 
+                        className="h-2"
+                      />
                     </div>
                   )}
-                  <div>
-                    <p className="font-medium">
-                      {workout.name} × {workout.targetReps}
-                    </p>
-                    {workout.currentReps > 0 && !workout.completed && (
-                      <p className="text-sm text-muted-foreground">
-                        {workout.currentReps}/{workout.targetReps} completed
-                      </p>
-                    )}
-                  </div>
+                  
+                  {!workout.completed && (
+                    <Button
+                      className="w-full"
+                      size="default"
+                      onClick={() => {
+                        window.scrollTo(0, 0);
+                        onStartWorkout(workout.name);
+                      }}
+                    >
+                      Start Workout
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  )}
+                  
+                  {workout.completed && (
+                    <div className="flex items-center justify-center gap-2 text-success font-medium">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Completed</span>
+                    </div>
+                  )}
                 </div>
-                {!workout.completed && (
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      window.scrollTo(0, 0);
-                      onStartWorkout(workout.name);
-                    }}
-                  >
-                    Start
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                )}
-              </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
 
-      {/* Badge Reward */}
-      <Card className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="text-5xl">{challenge.badge.icon}</div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                <h3 className="font-semibold text-lg">Reward Badge</h3>
+      {/* Badge Reward - Enhanced */}
+      <Card className="bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-yellow-500/10 border-2 border-yellow-500/30 card-elevated">
+        <CardContent className="p-6 md:p-8">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="text-6xl md:text-7xl">{challenge.badge.icon}</div>
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
+                <Trophy className="w-6 h-6 text-yellow-500" />
+                <h2 className="font-bold text-xl md:text-2xl">Reward Badge</h2>
               </div>
-              <p className="font-medium mb-1">{challenge.badge.name}</p>
-              <p className="text-sm text-muted-foreground">{challenge.badge.description}</p>
+              <p className="font-semibold text-lg md:text-xl mb-2">{challenge.badge.name}</p>
+              <p className="text-base text-muted-foreground">{challenge.badge.description}</p>
             </div>
-            {progress === 100 && (
-              <Star className="w-8 h-8 text-yellow-500 fill-yellow-500" />
+            {progress === 100 ? (
+              <div className="flex flex-col items-center gap-2">
+                <Star className="w-12 h-12 md:w-16 md:h-16 text-yellow-500 fill-yellow-500 animate-pulse" />
+                <Badge className="bg-yellow-500 text-white text-sm px-3 py-1">
+                  Earned!
+                </Badge>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 opacity-50">
+                <Star className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground" />
+                <Badge variant="outline" className="text-sm px-3 py-1">
+                  Locked
+                </Badge>
+              </div>
             )}
           </div>
         </CardContent>

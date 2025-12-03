@@ -876,6 +876,22 @@
     animation: mist-fade 1.2s ease-out forwards;
   }
 
+  /* === GHOST MODE SPECIFIC STYLES === */
+  
+  /* Prevent white flash during ghost mode transitions */
+  .ghost-mode-container {
+    background-color: #000;
+    min-height: 100vh;
+  }
+
+  /* === GHOST MODE ANTI-FLICKER === */
+  
+  /* Prevent white flash/flicker on ghost mode pages */
+  .ghost-mode-page {
+    background-color: #0a0118 !important;
+    min-height: 100vh;
+  }
+
   /* === CLEAN GHOST MODE TRANSITION === */
 
   @keyframes simple-fade {

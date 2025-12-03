@@ -50,6 +50,13 @@ export interface RepData {
   airTime?: number;
 }
 
+export interface PoseLandmark {
+  x: number;        // Normalized 0-1 (0 = left, 1 = right)
+  y: number;        // Normalized 0-1 (0 = top, 1 = bottom)
+  z: number;        // Depth (relative to hips, negative = closer to camera)
+  visibility: number; // 0-1 confidence score
+}
+
 export interface ProcessingResult {
   reps: RepData[];
   correctReps: number;
@@ -59,6 +66,7 @@ export interface ProcessingResult {
   videoBlob?: Blob;
   stats: any;
   csvData: RepData[];
+  poseLandmarks: PoseLandmark[][];  // Array of frames, each containing 33 landmarks
 }
 
 // Workout name mapping to match Python scripts
@@ -83,45 +91,58 @@ class MediaPipeProcessor {
   private videoTrack: any = null;
   private processedFrames: ImageData[] = [];
   private cancelProcessing = false;
+  private capturedLandmarks: PoseLandmark[][] = [];  // Store pose landmarks for each frame
 
   async initialize() {
-    // Wait for MediaPipe to be available (if loading from CDN)
-    if (typeof window !== 'undefined' && !window.Pose) {
-      console.log('Waiting for MediaPipe to load from CDN...');
-      await new Promise((resolve) => {
-        const checkInterval = setInterval(() => {
-          if (window.Pose) {
+    try {
+      console.log('🔧 Initializing MediaPipe...');
+      
+      // Wait for MediaPipe to be available (if loading from CDN)
+      if (typeof window !== 'undefined' && !window.Pose) {
+        console.log('Waiting for MediaPipe to load from CDN...');
+        await new Promise((resolve) => {
+          const checkInterval = setInterval(() => {
+            if (window.Pose) {
+              clearInterval(checkInterval);
+              resolve(true);
+            }
+          }, 100);
+
+          // Timeout after 10 seconds
+          setTimeout(() => {
             clearInterval(checkInterval);
-            resolve(true);
-          }
-        }, 100);
-
-        // Timeout after 10 seconds
-        setTimeout(() => {
-          clearInterval(checkInterval);
-          resolve(false);
-        }, 10000);
-      });
-    }
-
-    const mp = getMediaPipe();
-
-    this.pose = new mp.Pose({
-      locateFile: (file: string) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+            resolve(false);
+          }, 10000);
+        });
       }
-    });
 
-    this.pose.setOptions({
-      modelComplexity: 1, // Match Python: model_complexity=1
-      smoothLandmarks: true, // Keep smooth for better tracking
-      enableSegmentation: false,
-      smoothSegmentation: false, // Disable for frame-by-frame processing
-      minDetectionConfidence: 0.5, // Match Python: min_detection_confidence=0.5
-      minTrackingConfidence: 0.5
-    });
+      const mp = getMediaPipe();
 
-    return this.pose;
+      this.pose = new mp.Pose({
+        locateFile: (file: string) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+        }
+      });
+
+      this.pose.setOptions({
+        modelComplexity: 1, // Match Python: model_complexity=1
+        smoothLandmarks: true, // Keep smooth for better tracking
+        enableSegmentation: false,
+        smoothSegmentation: false, // Disable for frame-by-frame processing
+        minDetectionConfidence: 0.5, // Match Python: min_detection_confidence=0.5
+        minTrackingConfidence: 0.5
+      });
+
+      if (!this.pose) {
+        throw new Error('MediaPipe Pose failed to initialize');
+      }
+
+      console.log('✅ MediaPipe initialized successfully');
+      return this.pose;
+    } catch (error) {
+      console.error('❌ MediaPipe initialization failed:', error);
+      throw new Error('MediaPipe initialization failed. Please refresh and try again.');
+    }
   }
 
   calculateAngle(a: any, b: any, c: any): number {
@@ -233,8 +254,10 @@ class MediaPipeProcessor {
       await this.initialize();
     }
 
-    // Reset cancel flag
+    // Reset state for new processing session
     this.cancelProcessing = false;
+    this.capturedLandmarks = [];  // Clear landmarks array
+    console.log('🎬 Starting video processing with landmark capture...');
 
     // Wake lock for background processing
     let wakeLock: any = null;
@@ -248,13 +271,14 @@ class MediaPipeProcessor {
     }
 
     return new Promise((resolve, reject) => {
-      const video = document.createElement('video');
-      video.src = URL.createObjectURL(videoFile);
-      video.muted = true;
+      try {
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(videoFile);
+        video.muted = true;
 
-      // Create canvas for drawing
-      this.canvas = document.createElement('canvas');
-      this.ctx = this.canvas.getContext('2d')!;
+        // Create canvas for drawing
+        this.canvas = document.createElement('canvas');
+        this.ctx = this.canvas.getContext('2d')!;
 
       // Use video detector instead of manual state management
       const detector = getVideoDetectorForActivity(activityName) as any;
@@ -368,7 +392,8 @@ class MediaPipeProcessor {
           frameCount++;
           const progress = Math.min((i / totalFramesToProcess) * 100, 99);
 
-          if (frameCount % 20 === 0 || frameCount === 1) {
+          // Reduce logging frequency for better performance
+          if (frameCount % 30 === 0 || frameCount === 1) {
             const currentReps = detector.getReps ? detector.getReps().length : 0;
             console.log(`Frame: ${frameCount}/${totalFramesToProcess}, Time: ${targetTime.toFixed(2)}s/${video.duration.toFixed(2)}s, Progress: ${progress.toFixed(1)}%, Reps: ${currentReps}`);
           }
@@ -435,18 +460,22 @@ class MediaPipeProcessor {
             currentTime: targetTime,
             dipTime: dipTime,
             maxJumpHeight: maxJumpHeight,
-            avgJumpHeight: avgJumpHeight
+            avgJumpHeight: avgJumpHeight,
+            landmarksCaptured: this.capturedLandmarks.length,
+            framesProcessed: frameCount
           };
 
-          // Send progress update every 5 frames for smoother UI
-          if (frameCount % 5 === 0) {
+          // Send progress update every 10 frames for better performance
+          if (frameCount % 10 === 0) {
             // Capture frame for preview
             try {
-              lastCapturedFrame = this.canvas!.toDataURL('image/jpeg', 0.6);
+              lastCapturedFrame = this.canvas!.toDataURL('image/jpeg', 0.5);
             } catch (err) {
               console.error('Error capturing frame:', err);
             }
-            onProgress(progress, lastCapturedFrame || '', currentReps.length, metrics);
+            // Ensure progress reaches 99% max before completion
+            const reportedProgress = Math.min(progress, 99);
+            onProgress(reportedProgress, lastCapturedFrame || '', currentReps.length, metrics);
           }
         }
 
@@ -467,12 +496,34 @@ class MediaPipeProcessor {
         console.log(`📊 Frames collected: ${this.processedFrames.length}`);
         console.log(`🎬 Output FPS: ${playbackFPS.toFixed(3)} (${this.processedFrames.length} frames / ${actualDuration.toFixed(3)}s)`);
         console.log(`✅ Output duration will be: ${actualDuration.toFixed(3)}s`);
+        
+        // Log landmark capture summary
+        console.log('✅ Processing complete');
+        console.log(`📊 Total frames processed: ${frameCount}`);
+        console.log(`📊 Total landmarks captured: ${this.capturedLandmarks.length}`);
+        const framesWithPose = this.capturedLandmarks.filter(f => f.length > 0).length;
+        console.log(`📊 Frames with pose detected: ${framesWithPose}`);
+        const poseDetectionRate = this.capturedLandmarks.length > 0 ? (framesWithPose / this.capturedLandmarks.length) * 100 : 0;
+        console.log(`📊 Pose detection rate: ${poseDetectionRate.toFixed(1)}%`);
+        
+        // Validate landmarks were captured
+        if (this.capturedLandmarks.length === 0) {
+          console.error('❌ No landmarks were captured during processing');
+          if (wakeLock) wakeLock.release();
+          reject(new Error('Failed to extract pose data from video'));
+          return;
+        }
+        
+        // Warn if pose detection rate is low
+        if (poseDetectionRate < 50) {
+          console.warn('⚠️ Low pose detection rate - video quality may be poor');
+        }
 
         console.log('Creating video from', this.processedFrames.length, 'frames...');
         this.createVideoFromFrames(this.processedFrames, playbackFPS, actualDuration).then(videoBlob => {
           console.log('✅ Created video blob:', videoBlob.size, 'bytes');
           if (wakeLock) wakeLock.release();
-          const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
+          const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob, this.capturedLandmarks);
           resolve(result);
         }).catch(err => {
           console.error('Error creating video:', err);
@@ -484,6 +535,23 @@ class MediaPipeProcessor {
       this.pose!.onResults((results: any) => {
         poseResultsReceived++;
 
+        // Capture landmarks for this frame
+        if (results.poseLandmarks) {
+          const frameLandmarks: PoseLandmark[] = results.poseLandmarks.map((lm: any) => ({
+            x: lm.x,
+            y: lm.y,
+            z: lm.z || 0,
+            visibility: lm.visibility || 1
+          }));
+          this.capturedLandmarks.push(frameLandmarks);
+        } else {
+          // No pose detected in this frame - store empty array
+          this.capturedLandmarks.push([]);
+          if (poseResultsReceived % 30 === 0) {
+            console.warn(`Frame ${poseResultsReceived}: No pose detected`);
+          }
+        }
+
         if (poseResultsReceived === 1) {
           console.log('✅ First pose result received');
           console.log('Detector type:', detector.constructor.name);
@@ -491,8 +559,10 @@ class MediaPipeProcessor {
           console.log('Canvas:', this.canvas?.width, 'x', this.canvas?.height);
         }
 
-        if (poseResultsReceived % 30 === 0) {
+        // Reduce logging frequency for better performance
+        if (poseResultsReceived % 60 === 0) {
           console.log(`Pose results: ${poseResultsReceived}, Frames stored: ${this.processedFrames.length}`);
+          console.log(`📊 Landmarks captured: ${this.capturedLandmarks.length} frames`);
         }
 
         // Process with video detector
@@ -570,8 +640,8 @@ class MediaPipeProcessor {
           currentReach
         );
 
-        // Capture frame for preview (every 10th frame)
-        if (poseResultsReceived % 10 === 0 || poseResultsReceived === 1) {
+        // Capture frame for preview (every 15th frame for better performance)
+        if (poseResultsReceived % 15 === 0 || poseResultsReceived === 1) {
           try {
             lastCapturedFrame = this.canvas!.toDataURL('image/jpeg', 0.5);
           } catch (err) {
@@ -656,15 +726,31 @@ class MediaPipeProcessor {
 
         // Create video from collected frames with calculated FPS
         this.createVideoFromFrames(this.processedFrames, playbackFPS, actualDuration).then(videoBlob => {
-          const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
+          const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob, this.capturedLandmarks);
           resolve(result);
         }).catch(err => {
           console.error('Error creating video:', err);
           const emptyBlob = new Blob([], { type: 'video/webm' });
-          const result = this.calculateStats(finalReps, activityName, actualDuration, emptyBlob);
+          const result = this.calculateStats(finalReps, activityName, actualDuration, emptyBlob, this.capturedLandmarks);
           resolve(result);
         });
       }, maxProcessingTime);
+      } catch (error) {
+        console.error('❌ Video processing failed:', error);
+        
+        // Clean up wake lock
+        if (wakeLock) {
+          try {
+            wakeLock.release();
+          } catch (e) {
+            console.error('Failed to release wake lock:', e);
+          }
+        }
+        
+        // Provide helpful error message
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        reject(new Error(`Video processing failed: ${errorMessage}`));
+      }
     });
   }
 
@@ -802,7 +888,7 @@ class MediaPipeProcessor {
 
 
 
-  private calculateStats(reps: any[], activityName: string, duration: number, videoBlob: Blob): ProcessingResult {
+  private calculateStats(reps: any[], activityName: string, duration: number, videoBlob: Blob, poseLandmarks: PoseLandmark[][]): ProcessingResult {
     const correctReps = reps.filter(r => r.correct === 'True' || r.correct === true).length;
     const incorrectReps = reps.length - correctReps;
     const posture: 'Good' | 'Bad' = correctReps >= reps.length * 0.7 ? 'Good' : 'Bad';
@@ -862,7 +948,8 @@ class MediaPipeProcessor {
       posture,
       videoBlob,
       stats,
-      csvData: reps
+      csvData: reps,
+      poseLandmarks  // Include landmarks in result
     };
   }
 

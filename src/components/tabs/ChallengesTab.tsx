@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, CheckCircle, Lock, Star, ArrowRight } from 'lucide-react';
+import { Trophy, Target, CheckCircle, Lock, Star, ArrowRight, Users } from 'lucide-react';
 import ProgressiveImage from '@/components/ui/progressive-image';
 
 interface Challenge {
@@ -248,40 +248,40 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Challenges</h1>
-        <p className="text-muted-foreground">Complete workouts and earn badges</p>
+      <div className="text-center max-w-2xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">Challenges</h1>
+        <p className="text-muted-foreground text-base">Complete all workouts to earn exclusive badges</p>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      {/* Category Filter - Centered on desktop */}
+      <div className="flex gap-2 overflow-x-auto pb-2 justify-center flex-wrap">
         {categories.map((category) => (
           <Button
             key={category.name}
             variant={selectedCategory === category.name ? 'default' : 'outline'}
-            size="sm"
+            size="default"
             onClick={() => setSelectedCategory(category.name === selectedCategory ? null : category.name)}
             className="shrink-0"
           >
-            <span className="mr-1">{category.icon}</span>
+            <span className="mr-2 text-lg">{category.icon}</span>
             {category.name}
           </Button>
         ))}
       </div>
 
-      {/* Challenges List */}
-      <div className="space-y-4">
+      {/* Challenges Grid - Optimized for PC */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredChallenges.map((challenge) => {
           const progress = calculateProgress(challenge.workouts);
           const completedWorkouts = challenge.workouts.filter(w => w.completed).length;
           const totalWorkouts = challenge.workouts.length;
 
           return (
-            <Card key={challenge.id} className="card-elevated overflow-hidden">
+            <Card key={challenge.id} className="card-elevated overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300">
               {/* Challenge Cover Image */}
-              <div className="h-40 relative">
+              <div className="h-48 relative">
                 <ProgressiveImage
                   src={challenge.image || '/placeholder.svg'}
                   alt={challenge.name}
@@ -289,101 +289,116 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
                   placeholderClassName="bg-gradient-to-br from-primary/20 to-primary/5"
                   priority={true}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10" />
-                <div className="absolute bottom-3 left-3 right-3 z-20">
-                  <div className="flex items-center gap-2">
-                    <div className="text-3xl">{challenge.badge.icon}</div>
-                    <div>
-                      <h3 className="text-white font-bold text-base">{challenge.name}</h3>
-                      <p className="text-white/90 text-xs">{challenge.description}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
+                
+                {/* Badges overlay */}
+                <div className="absolute top-3 right-3 z-20 flex gap-2">
+                  <Badge className={`${getCategoryColor(challenge.category)} text-white shadow-lg`}>
+                    {challenge.category}
+                  </Badge>
+                  <Badge className={`${getDifficultyColor(challenge.difficulty)} text-white shadow-lg`}>
+                    {challenge.difficulty}
+                  </Badge>
+                </div>
+
+                {/* Title overlay */}
+                <div className="absolute bottom-0 left-0 right-0 z-20 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="text-4xl">{challenge.badge.icon}</div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold text-xl mb-1">{challenge.name}</h3>
+                      <p className="text-white/90 text-sm">{challenge.description}</p>
                     </div>
                   </div>
                 </div>
+
+                {challenge.isLocked && (
+                  <div className="absolute top-3 left-3 z-20">
+                    <Lock className="w-6 h-6 text-white drop-shadow-lg" />
+                  </div>
+                )}
               </div>
               
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge className={`${getCategoryColor(challenge.category)} text-white`}>
-                        {challenge.category}
-                      </Badge>
-                      <Badge className={`${getDifficultyColor(challenge.difficulty)} text-white`}>
-                        {challenge.difficulty}
-                      </Badge>
-                      <Badge variant="outline">
-                        {challenge.participants} participants
-                      </Badge>
-                    </div>
+              <CardContent className="space-y-4 flex-1 flex flex-col p-5">
+                {/* Stats */}
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">{challenge.participants.toLocaleString()}</span>
                   </div>
-                  {challenge.isLocked && (
-                    <Lock className="w-5 h-5 text-muted-foreground" />
-                  )}
+                  <div className="flex items-center gap-1">
+                    <Target className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">{totalWorkouts} workouts</span>
+                  </div>
                 </div>
-              </CardHeader>
 
-              <CardContent className="space-y-4">
                 {/* Progress */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-semibold">
                       Progress: {completedWorkouts}/{totalWorkouts} workouts
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm font-bold text-primary">
                       {Math.round(progress)}%
                     </span>
                   </div>
-                  <Progress value={progress} className="h-2" />
+                  <Progress value={progress} className="h-2.5" />
                 </div>
 
-                {/* Workouts */}
-                <div className="space-y-2">
+                {/* Workouts - Compact list */}
+                <div className="space-y-2 flex-1">
                   <h4 className="text-sm font-semibold flex items-center gap-2">
                     <Target className="w-4 h-4" />
                     Workout Plan
                   </h4>
-                  {challenge.workouts.map((workout, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between p-3 rounded-lg border ${
-                        workout.completed
-                          ? 'bg-success/10 border-success/20'
-                          : 'bg-secondary/50 border-border'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {workout.completed ? (
-                          <CheckCircle className="w-5 h-5 text-success" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full border-2 border-muted-foreground" />
-                        )}
-                        <div>
-                          <p className="font-medium text-sm">
-                            {workout.name} × {workout.targetReps}
-                          </p>
-                          {workout.currentReps > 0 && !workout.completed && (
-                            <p className="text-xs text-muted-foreground">
-                              {workout.currentReps}/{workout.targetReps} completed
+                  <div className="space-y-1.5">
+                    {challenge.workouts.map((workout, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
+                          workout.completed
+                            ? 'bg-success/10 border-success/20'
+                            : 'bg-secondary/50 border-border hover:bg-secondary/70'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex items-center justify-center w-6 h-6">
+                            {workout.completed ? (
+                              <CheckCircle className="w-5 h-5 text-success" />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                                {index + 1}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {workout.name} × {workout.targetReps}
                             </p>
-                          )}
+                            {workout.currentReps > 0 && !workout.completed && (
+                              <p className="text-xs text-muted-foreground">
+                                {workout.currentReps}/{workout.targetReps} completed
+                              </p>
+                            )}
+                          </div>
                         </div>
+                        {!workout.completed && !challenge.isLocked && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onStartWorkout(workout.name, challenge)}
+                            className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                          >
+                            Start
+                          </Button>
+                        )}
                       </div>
-                      {!workout.completed && !challenge.isLocked && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onStartWorkout(workout.name, challenge)}
-                        >
-                          Start
-                          <ArrowRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
 
                 {/* Badge Reward */}
-                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg p-4">
+                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg p-4 mt-auto">
                   <div className="flex items-center gap-3">
                     <div className="text-3xl">{challenge.badge.icon}</div>
                     <div className="flex-1">
@@ -395,7 +410,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
                       <p className="text-xs text-muted-foreground">{challenge.badge.description}</p>
                     </div>
                     {progress === 100 && (
-                      <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-6 h-6 text-yellow-500 fill-yellow-500 animate-pulse" />
                     )}
                   </div>
                 </div>
@@ -406,10 +421,10 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       </div>
 
       {filteredChallenges.length === 0 && (
-        <Card>
+        <Card className="max-w-md mx-auto">
           <CardContent className="p-12 text-center">
-            <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-semibold mb-2">No challenges found</h3>
+            <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold text-lg mb-2">No challenges found</h3>
             <p className="text-sm text-muted-foreground">
               Try selecting a different category
             </p>

@@ -98,22 +98,26 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-2">Report</h1>
-        <p className="text-muted-foreground">Track your fitness progress</p>
+      {/* Header - Enhanced for desktop */}
+      <div className="text-center max-w-4xl mx-auto">
+        <h1 className="text-2xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          Performance Report
+        </h1>
+        <p className="text-muted-foreground text-sm md:text-base">Track your fitness journey with AI-powered insights</p>
       </div>
 
-      {/* Dashboard Grid - 3 columns on desktop: 320px (left), 1fr (center), 320px (right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-6 max-w-[1600px] mx-auto">
+      {/* Dashboard Grid - Enhanced for desktop: 2 columns on tablet, 3 columns on desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-[1800px] mx-auto">
         {/* Left Column - BMI & Body Metrics */}
-        <div className="space-y-6 lg:order-1">
+        <div className="space-y-4 md:space-y-6 md:col-span-1 lg:col-span-1">
           {/* BMI Tracker */}
-          <Card className="card-elevated">
+          <Card className="card-elevated hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('bmi')}>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between text-base md:text-lg">
                 <div className="flex items-center space-x-2">
-                  <Scale className="w-5 h-5 text-primary" />
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Scale className="w-5 h-5 text-primary" />
+                  </div>
                   <span>BMI Tracker</span>
                 </div>
                 {collapsedSections['bmi'] ? (
@@ -158,40 +162,46 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
           </Card>
 
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="card-elevated">
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Zap className="w-5 h-5 text-primary mr-2" />
-                  <span className="text-2xl font-bold text-primary">{workoutHistory.length > 0 ? '92%' : '87%'}</span>
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <Card className="card-elevated hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <CardContent className="p-4 md:p-6 text-center">
+                <div className="flex flex-col items-center justify-center mb-2">
+                  <div className="p-3 bg-primary/10 rounded-full mb-3">
+                    <Zap className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+                  </div>
+                  <span className="text-2xl md:text-3xl font-bold text-primary">{workoutHistory.length > 0 ? '92%' : '87%'}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Weekly Goal</p>
+                <p className="text-xs md:text-sm text-muted-foreground font-medium">Weekly Goal</p>
               </CardContent>
             </Card>
 
-            <Card className="card-elevated">
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Clock className="w-5 h-5 text-success mr-2" />
-                  <span className="text-2xl font-bold text-success">{workoutHistory.length > 0 ? '9.2h' : '8.5h'}</span>
+            <Card className="card-elevated hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <CardContent className="p-4 md:p-6 text-center">
+                <div className="flex flex-col items-center justify-center mb-2">
+                  <div className="p-3 bg-success/10 rounded-full mb-3">
+                    <Clock className="w-6 h-6 md:w-8 md:h-8 text-success" />
+                  </div>
+                  <span className="text-2xl md:text-3xl font-bold text-success">{workoutHistory.length > 0 ? '9.2h' : '8.5h'}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">This Week</p>
+                <p className="text-xs md:text-sm text-muted-foreground font-medium">This Week</p>
               </CardContent>
             </Card>
           </div>
         </div>
 
         {/* Center Column - Charts & Progress */}
-        <div className="space-y-6 lg:order-2">
+        <div className="space-y-4 md:space-y-6 md:col-span-2 lg:col-span-1">
           {/* Weekly Progress - New Horizontal Component */}
           <WeeklyProgress />
 
           {/* Performance Insights */}
-          <Card className="card-elevated">
+          <Card className="card-elevated hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('insights')}>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between text-base md:text-lg">
                 <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-success" />
+                  <div className="p-2 bg-success/10 rounded-lg">
+                    <TrendingUp className="w-5 h-5 text-success" />
+                  </div>
                   <span>Performance Insights</span>
                 </div>
                 {collapsedSections['insights'] ? (
@@ -250,14 +260,16 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
         </div>
 
         {/* Right Column - Recent Activity & Achievements */}
-        <div className="space-y-6 lg:order-3">
+        <div className="space-y-4 md:space-y-6 md:col-span-2 lg:col-span-1">
           {/* Recent Workouts - Last 2 Only */}
           {recentWorkouts.length > 0 && (
-            <Card className="card-elevated">
+            <Card className="card-elevated hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('workouts')}>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-base md:text-lg">
               <div className="flex items-center space-x-2">
-                <Activity className="w-5 h-5 text-primary" />
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Activity className="w-5 h-5 text-primary" />
+                </div>
                 <span>Recent Workouts</span>
                 <Badge variant="outline" className="text-xs">
                   Last {recentWorkouts.length}
@@ -345,11 +357,13 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
       )}
 
           {/* Recent Achievements */}
-          <Card className="card-elevated">
+          <Card className="card-elevated hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('achievements')}>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between text-base md:text-lg">
                 <div className="flex items-center space-x-2">
-                  <Award className="w-5 h-5 text-warning" />
+                  <div className="p-2 bg-warning/10 rounded-lg">
+                    <Award className="w-5 h-5 text-warning" />
+                  </div>
                   <span>Recent Achievements</span>
                 </div>
                 {collapsedSections['achievements'] ? (
@@ -382,31 +396,42 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
         </div>
       </div>
 
-      {/* Export Options */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium">Export Data</h3>
-              <p className="text-sm text-muted-foreground">Download your fitness reports</p>
+      {/* Bottom Section - Full Width on Desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-[1800px] mx-auto">
+        {/* Export Options */}
+        <Card className="hover:shadow-lg transition-shadow duration-300">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-medium text-base md:text-lg flex items-center gap-2">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Download className="w-5 h-5 text-primary" />
+                  </div>
+                  Export Data
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">Download your fitness reports and analytics</p>
+              </div>
+              <Button variant="outline" size="sm" className="md:size-default w-full md:w-auto">
+                <Download className="w-4 h-4 mr-2" />
+                Export PDF
+              </Button>
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Placeholder */}
-      <Card>
-        <CardContent className="p-8 text-center">
-          <h3 className="font-semibold mb-2">Advanced Analytics Coming Soon</h3>
-          <p className="text-sm text-muted-foreground">
-            Detailed performance analysis, comparison charts, and personalized recommendations.
-          </p>
-        </CardContent>
-      </Card>
+        {/* Placeholder */}
+        <Card className="hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-primary/5 to-purple-500/5">
+          <CardContent className="p-6 md:p-8 text-center">
+            <div className="inline-flex p-3 bg-primary/10 rounded-full mb-4">
+              <BarChart3 className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="font-semibold text-base md:text-lg mb-2">Advanced Analytics Coming Soon</h3>
+            <p className="text-sm text-muted-foreground">
+              Detailed performance analysis, comparison charts, and AI-powered personalized recommendations.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

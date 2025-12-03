@@ -60,7 +60,6 @@ interface GhostModeScreenProps {
 const GhostModeScreen = ({ onBack, onSelectActivity, showAnimation = false }: GhostModeScreenProps) => {
   const [hoveredActivity, setHoveredActivity] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(showAnimation);
-  const [isExiting, setIsExiting] = useState(false);
 
   // Scroll to top and handle entrance animation
   React.useEffect(() => {
@@ -86,9 +85,9 @@ const GhostModeScreen = ({ onBack, onSelectActivity, showAnimation = false }: Gh
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-950 via-gray-900 to-black relative">
+    <div className="ghost-mode-page min-h-screen bg-gradient-to-b from-purple-950 via-gray-900 to-black relative">
       {/* Ghost Mode Transition */}
-      {(isTransitioning || isExiting) && (
+      {isTransitioning && (
         <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden bg-black">
           {/* Gradient backdrop */}
           <div className="absolute inset-0 bg-gradient-to-b from-purple-950/80 via-black to-black animate-simple-fade" />

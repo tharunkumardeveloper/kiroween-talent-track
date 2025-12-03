@@ -353,6 +353,20 @@ export const BADGES: Badge[] = [
       description: 'Complete 10 upload workouts'
     },
     rarity: 'rare'
+  },
+  // Ghost Mode Badge
+  {
+    id: 'ghost_slayer',
+    name: 'Ghost Slayer',
+    description: 'Beat the ghost in a workout challenge',
+    icon: '👻💀',
+    category: 'elite',
+    requirement: {
+      type: 'perfect',
+      count: 1,
+      description: 'Beat the ghost with 85%+ form'
+    },
+    rarity: 'epic'
   }
 ];
 

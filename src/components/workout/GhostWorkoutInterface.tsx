@@ -145,9 +145,7 @@ const GhostWorkoutInterface = ({ activity, mode, ghostGif, onBack }: GhostWorkou
             <GhostVideoProcessor
                 videoFile={selectedVideo}
                 activityName={activity.name}
-                ghostGif={ghostGif}
                 onBack={onBack}
-                onRetry={handleRetry}
                 onComplete={handleWorkoutComplete}
             />
         );
@@ -172,9 +170,7 @@ const GhostWorkoutInterface = ({ activity, mode, ghostGif, onBack }: GhostWorkou
             <GhostVideoProcessor
                 videoFile={null}
                 activityName={activity.name}
-                ghostGif={ghostGif}
                 onBack={onBack}
-                onRetry={() => setStage('liveRecording')}
                 onComplete={handleWorkoutComplete}
                 liveResults={liveResults}
             />
@@ -196,7 +192,7 @@ const GhostWorkoutInterface = ({ activity, mode, ghostGif, onBack }: GhostWorkou
     // Fallback - should never reach here
     console.error('GhostWorkoutInterface - Invalid stage:', stage);
     return (
-        <div className="min-h-screen bg-gradient-to-b from-purple-950 via-gray-900 to-black flex items-center justify-center">
+        <div className="ghost-mode-page min-h-screen bg-gradient-to-b from-purple-950 via-gray-900 to-black flex items-center justify-center">
             <div className="text-purple-100 text-center">
                 <p>Something went wrong</p>
                 <button onClick={onBack} className="mt-4 px-4 py-2 bg-purple-600 rounded">

@@ -1,6 +1,6 @@
 // Utility functions for managing workout history and video storage
 
-const MAX_RECENT_WORKOUTS = 2;
+const MAX_RECENT_WORKOUTS = 5;
 
 export interface WorkoutData {
   id: number;
@@ -16,6 +16,8 @@ export interface WorkoutData {
   coinsEarned?: number;
   correctReps?: number;
   totalReps?: number;
+  isGhostMode?: boolean; // Flag to indicate if workout was done in ghost mode
+  mode?: 'upload' | 'live'; // Track workout mode
 }
 
 /**

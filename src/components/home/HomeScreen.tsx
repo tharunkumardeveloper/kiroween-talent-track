@@ -8,7 +8,9 @@ import {
   Zap,
   Star,
   Ghost,
-  ChevronRight
+  ChevronRight,
+  Trophy,
+  Target
 } from 'lucide-react';
 
 // Import challenge images from root challenges folder
@@ -221,20 +223,20 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
 
           {/* Ghost Mode Banner */}
           <Card
-            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-purple-950 via-gray-900 to-purple-950 border-purple-500/30 hover:border-purple-400/60 hover:shadow-2xl hover:shadow-purple-500/50 group mb-6 lg:mb-0 lg:flex lg:items-center"
+            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-purple-950 via-gray-900 to-purple-950 border-purple-500/50 hover:border-purple-400/80 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/50 group mb-6 lg:mb-0 lg:flex lg:items-center"
             onClick={() => onTabChange?.('ghost-mode')}
           >
             <CardContent className="p-6 lg:p-8 relative w-full">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-600/10 to-purple-600/0 animate-pulse" />
-              {/* Floating ghosts on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                <Ghost className="absolute top-4 right-12 w-5 h-5 text-purple-400/50 animate-ghost-float" />
-                <Ghost className="absolute bottom-4 right-24 w-4 h-4 text-purple-300/40 animate-ghost-float" style={{ animationDelay: '0.3s' }} />
-                <Ghost className="absolute top-1/2 right-32 w-6 h-6 text-purple-500/30 animate-ghost-float" style={{ animationDelay: '0.6s' }} />
+              {/* Floating ghosts - always visible with white color */}
+              <div className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none">
+                <Ghost className="absolute top-4 right-12 w-5 h-5 text-white drop-shadow-lg animate-ghost-float" />
+                <Ghost className="absolute bottom-4 right-24 w-4 h-4 text-white drop-shadow-lg animate-ghost-float" style={{ animationDelay: '0.3s' }} />
+                <Ghost className="absolute top-1/2 right-32 w-6 h-6 text-white drop-shadow-lg animate-ghost-float" style={{ animationDelay: '0.6s' }} />
               </div>
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-purple-900/50 flex items-center justify-center border-2 border-purple-500/30 group-hover:border-purple-400/60 group-hover:bg-purple-800/60 transition-all duration-300 group-hover:scale-110">
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-purple-900/60 flex items-center justify-center border-2 border-purple-500/50 group-hover:border-purple-400/80 group-hover:bg-purple-800/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20">
                     <Ghost className="w-7 h-7 lg:w-8 lg:h-8 text-purple-400 animate-pulse group-hover:animate-bounce" />
                   </div>
                   <div>
@@ -322,6 +324,42 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* Test Mode Banner */}
+        <div className="mb-6 max-w-2xl mx-auto lg:max-w-full">
+          <Card
+            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-red-900 via-gray-800 to-red-900 border-red-500/50 hover:border-red-400/80 shadow-xl shadow-red-500/30 hover:shadow-2xl hover:shadow-red-500/50 group"
+            onClick={() => {
+              // TODO: Add Test Mode navigation
+              console.log('Test Mode clicked');
+            }}
+          >
+            <CardContent className="p-6 lg:p-8 relative w-full">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 animate-pulse" />
+              {/* Floating icons - always visible with white color */}
+              <div className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none">
+                <Trophy className="absolute top-4 right-12 w-5 h-5 text-white drop-shadow-lg animate-bounce" />
+                <Target className="absolute bottom-4 right-24 w-4 h-4 text-white drop-shadow-lg animate-bounce" style={{ animationDelay: '0.3s' }} />
+                <Zap className="absolute top-1/2 right-32 w-6 h-6 text-white drop-shadow-lg animate-bounce" style={{ animationDelay: '0.6s' }} />
+              </div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-red-800/60 flex items-center justify-center border-2 border-red-500/50 group-hover:border-red-400/80 group-hover:bg-red-700/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-red-500/20">
+                    <Target className="w-7 h-7 lg:w-8 lg:h-8 text-red-400 animate-pulse group-hover:animate-spin" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg lg:text-xl text-red-100 flex items-center space-x-2 group-hover:text-white transition-colors mb-1">
+                      <span>Test Mode</span>
+                      <Badge className="bg-red-700/50 text-red-200 border-red-500/30 group-hover:bg-red-600/70 group-hover:text-red-100 transition-all text-xs">BETA</Badge>
+                    </h3>
+                    <p className="text-sm lg:text-base text-red-300 group-hover:text-red-200 transition-colors">Challenge yourself 🎯</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Challenges Section */}

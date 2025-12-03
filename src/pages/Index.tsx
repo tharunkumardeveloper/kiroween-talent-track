@@ -311,18 +311,18 @@ const Index = () => {
         {/* Header */}
         <div className="sticky top-0 z-50 bg-primary border-b border-primary-dark safe-top">
           <div className="px-4 py-4">
-            <div className="flex items-center space-x-3 max-w-md mx-auto">
+            <div className="flex items-center space-x-3 max-w-7xl mx-auto">
               <Button variant="ghost" size="sm" onClick={handleBackToHome} className="text-white hover:bg-white/20">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div className="flex-1">
-                <h1 className="text-lg font-semibold text-white">Challenge</h1>
+                <h1 className="text-lg md:text-xl font-semibold text-white">Challenge</h1>
                 <p className="text-sm text-white/80">Complete all workouts to earn badge</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="px-4 py-6 max-w-md mx-auto">
+        <div className="px-4 py-6 max-w-7xl mx-auto">
           <ChallengeDetail
             challengeId={selectedChallengeId}
             onBack={handleBackToHome}
