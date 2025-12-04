@@ -65,21 +65,36 @@ function checkRateLimit(key: string, limit: number): boolean {
  */
 function extractActions(response: string): Array<{ type: string; label: string; payload: any }> {
   const actions: Array<{ type: string; label: string; payload: any }> = [];
+  const responseLower = response.toLowerCase();
 
-  // Detect workout mentions
-  const workouts = ['push-ups', 'pull-ups', 'sit-ups', 'vertical jump', 'shuttle run', 'sit reach', 'broad jump'];
-  workouts.forEach(workout => {
-    if (response.toLowerCase().includes(workout)) {
+  // Detect workout mentions with proper mapping
+  const workoutMap: Record<string, string> = {
+    'push-up': 'push-ups',
+    'pushup': 'push-ups',
+    'pull-up': 'pull-ups',
+    'pullup': 'pull-ups',
+    'sit-up': 'sit-ups',
+    'situp': 'sit-ups',
+    'vertical jump': 'vertical-jump',
+    'shuttle run': 'shuttle-run',
+    'sit reach': 'sit-reach',
+    'sit and reach': 'sit-reach',
+    'broad jump': 'broad-jump'
+  };
+
+  Object.entries(workoutMap).forEach(([keyword, workoutId]) => {
+    if (responseLower.includes(keyword) && actions.length < 2) {
+      const label = workoutId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
       actions.push({
         type: 'start_workout',
-        label: `Start ${workout.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-')}`,
-        payload: { workoutName: workout }
+        label: `Start ${label}`,
+        payload: { workoutId }
       });
     }
   });
 
   // Detect feature mentions
-  if (response.toLowerCase().includes('ghost mode')) {
+  if (responseLower.includes('ghost mode') && actions.length < 2) {
     actions.push({
       type: 'navigate',
       label: 'Open Ghost Mode',
@@ -87,7 +102,7 @@ function extractActions(response: string): Array<{ type: string; label: string; 
     });
   }
 
-  if (response.toLowerCase().includes('test mode')) {
+  if (responseLower.includes('test mode') && actions.length < 2) {
     actions.push({
       type: 'navigate',
       label: 'Open Test Mode',
@@ -96,7 +111,7 @@ function extractActions(response: string): Array<{ type: string; label: string; 
   }
 
   // Detect tab mentions
-  if (response.toLowerCase().includes('report tab') || response.toLowerCase().includes('view your progress')) {
+  if ((responseLower.includes('report tab') || responseLower.includes('view your progress')) && actions.length < 2) {
     actions.push({
       type: 'navigate',
       label: 'Go to Report',
@@ -104,7 +119,7 @@ function extractActions(response: string): Array<{ type: string; label: string; 
     });
   }
 
-  if (response.toLowerCase().includes('roadmap') || response.toLowerCase().includes('badges')) {
+  if ((responseLower.includes('roadmap') || responseLower.includes('badges')) && actions.length < 2) {
     actions.push({
       type: 'navigate',
       label: 'Go to Roadmap',

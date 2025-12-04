@@ -446,10 +446,24 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
           }
         }}
         onNavigate={(destination, payload) => {
+          console.log('ChatWidget navigation:', destination, payload);
           if (destination === 'ghost-mode' || destination === 'test-mode') {
             onTabChange(destination);
-          } else if (destination === 'workout' && payload?.workoutName) {
-            onActivitySelect?.({ name: payload.workoutName });
+          } else if (destination === 'workout' && payload?.workoutId) {
+            // Map workout IDs to proper activity names
+            const workoutNameMap: Record<string, string> = {
+              'push-ups': 'Push-ups',
+              'pull-ups': 'Pull-ups',
+              'sit-ups': 'Sit-ups',
+              'vertical-jump': 'Vertical Jump',
+              'shuttle-run': 'Shuttle Run',
+              'sit-reach': 'Sit & Reach',
+              'broad-jump': 'Broad Jump'
+            };
+            const activityName = workoutNameMap[payload.workoutId];
+            if (activityName && onActivitySelect) {
+              onActivitySelect({ name: activityName });
+            }
           } else if (['training', 'discover', 'report', 'roadmap'].includes(destination)) {
             onTabChange(destination);
           }

@@ -59,12 +59,12 @@ const ChatWidget = ({ currentTab, userContext, onNavigate }: ChatWidgetProps) =>
       const welcomeMessage: Message = {
         id: 'welcome',
         role: 'assistant',
-        content: `Hey there, athlete! 👻 I'm FitFranken, your AI fitness assistant. I'm here to help you navigate Talent Track, answer questions about workouts, and keep you motivated on your fitness journey. What can I help you with today?`,
+        content: `Hey! 👻 I'm FitFranken, your AI fitness coach. What's your name?`,
         timestamp: Date.now()
       };
       setMessages([welcomeMessage]);
     }
-  }, [userContext.userName]);
+  }, []);
 
   // Save conversation history to localStorage whenever messages change
   useEffect(() => {
@@ -99,11 +99,12 @@ const ChatWidget = ({ currentTab, userContext, onNavigate }: ChatWidgetProps) =>
     const welcomeMessage: Message = {
       id: 'welcome-' + Date.now(),
       role: 'assistant',
-      content: `Hey there, athlete! 👻 I'm FitFranken, your AI fitness assistant. Ready to start fresh? What can I help you with?`,
+      content: `Hey! 👻 Starting fresh. What's your name?`,
       timestamp: Date.now()
     };
     setMessages([welcomeMessage]);
     localStorage.removeItem('fitfranken_chat_history');
+    localStorage.removeItem('fitfranken_user_name');
   };
 
   return (
