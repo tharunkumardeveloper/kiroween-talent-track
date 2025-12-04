@@ -169,16 +169,26 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
   return (
     <>
       {/* Content - No top bar, it's handled by Index.tsx wrapper */}
-      <div className="px-4 pb-20 lg:pb-8 max-w-7xl mx-auto pt-6">
+      <div className="px-4 pb-20 lg:pb-8 max-w-7xl mx-auto pt-6 relative">
+        {/* Subtle Halloween Background Elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-5 z-0">
+          <div className="absolute top-20 left-10 text-6xl animate-float">👻</div>
+          <div className="absolute top-40 right-20 text-5xl animate-float-delayed" style={{ animationDelay: '1s' }}>🎃</div>
+          <div className="absolute bottom-32 left-1/4 text-4xl animate-float" style={{ animationDelay: '2s' }}>🦇</div>
+          <div className="absolute top-1/2 right-10 text-5xl animate-bounce-slow">🕷️</div>
+        </div>
 
         {/* Weekly Progress & Ghost Mode - Side by Side on Desktop */}
-        <div className="mb-6 max-w-2xl mx-auto lg:max-w-full lg:grid lg:grid-cols-2 lg:gap-6">
+        <div className="mb-6 max-w-2xl mx-auto lg:max-w-full lg:grid lg:grid-cols-2 lg:gap-6 relative z-10">
           {/* Weekly Goal Progress */}
-          <Card className="animate-fade-in mb-6 lg:mb-0">
+          <Card className="animate-fade-in mb-6 lg:mb-0 bg-gradient-to-br from-purple-950/80 to-purple-900/60 border-purple-500/30 backdrop-blur-sm shadow-lg shadow-purple-500/10">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Weekly Progress</CardTitle>
-                <Badge variant="secondary" className="bg-success/20 text-success">
+                <CardTitle className="text-lg text-purple-100 flex items-center gap-2">
+                  <span className="text-xl">📊</span>
+                  Weekly Progress
+                </CardTitle>
+                <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/30">
                   🔥 5 day streak
                 </Badge>
               </div>
@@ -216,47 +226,50 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
                 })}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">5/7 days this week</span>
-                <span className="text-primary font-medium">71% complete</span>
+                <span className="text-purple-300">5/7 days this week</span>
+                <span className="text-orange-400 font-medium">71% complete</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Ghost Mode Banner */}
+          {/* Ghost Mode Banner - Halloween Themed */}
           <Card
-            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-purple-950 via-gray-900 to-purple-950 border-purple-500/50 hover:border-purple-400/80 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/50 group mb-6 lg:mb-0 lg:flex lg:items-center"
+            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-purple-950 via-purple-900 to-purple-950 border-purple-500/50 hover:border-orange-500/80 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-orange-500/50 group mb-6 lg:mb-0 lg:flex lg:items-center relative"
             onClick={() => onTabChange?.('ghost-mode')}
           >
             <CardContent className="p-6 lg:p-8 relative w-full">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-600/10 to-purple-600/0 animate-pulse" />
-              {/* Floating ghosts - always visible with white color */}
-              <div className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none">
-                <Ghost className="absolute top-4 right-12 w-5 h-5 text-white drop-shadow-lg animate-ghost-float" />
-                <Ghost className="absolute bottom-4 right-24 w-4 h-4 text-white drop-shadow-lg animate-ghost-float" style={{ animationDelay: '0.3s' }} />
-                <Ghost className="absolute top-1/2 right-32 w-6 h-6 text-white drop-shadow-lg animate-ghost-float" style={{ animationDelay: '0.6s' }} />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-600/0 via-orange-600/10 to-orange-600/0 animate-pulse" />
+              {/* Floating ghosts and pumpkins - Halloween themed */}
+              <div className="absolute inset-0 opacity-30 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none">
+                <Ghost className="absolute top-4 right-12 w-5 h-5 text-orange-300 drop-shadow-lg animate-ghost-float" />
+                <div className="absolute bottom-4 right-24 text-2xl animate-ghost-float" style={{ animationDelay: '0.3s' }}>🎃</div>
+                <Ghost className="absolute top-1/2 right-32 w-6 h-6 text-purple-300 drop-shadow-lg animate-ghost-float" style={{ animationDelay: '0.6s' }} />
               </div>
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-purple-900/60 flex items-center justify-center border-2 border-purple-500/50 group-hover:border-purple-400/80 group-hover:bg-purple-800/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20">
-                    <Ghost className="w-7 h-7 lg:w-8 lg:h-8 text-purple-400 animate-pulse group-hover:animate-bounce" />
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-purple-900/60 flex items-center justify-center border-2 border-purple-500/50 group-hover:border-orange-500/80 group-hover:bg-purple-800/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20 group-hover:shadow-orange-500/30">
+                    <Ghost className="w-7 h-7 lg:w-8 lg:h-8 text-purple-300 animate-pulse group-hover:text-orange-300 group-hover:animate-bounce" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg lg:text-xl text-purple-100 flex items-center space-x-2 group-hover:text-white transition-colors mb-1">
-                      <span>Ghost Mode</span>
-                      <Badge className="bg-purple-800/50 text-purple-200 border-purple-600/30 group-hover:bg-purple-700/70 group-hover:text-purple-100 transition-all text-xs">NEW</Badge>
+                    <h3 className="font-bold text-lg lg:text-xl text-purple-100 flex items-center space-x-2 group-hover:text-orange-100 transition-colors mb-1">
+                      <span>👻 Ghost Mode</span>
+                      <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 group-hover:bg-orange-500/30 group-hover:text-orange-200 transition-all text-xs">SPOOKY</Badge>
                     </h3>
-                    <p className="text-sm lg:text-base text-purple-300 group-hover:text-purple-200 transition-colors">Train in the shadows 👻</p>
+                    <p className="text-sm lg:text-base text-purple-300 group-hover:text-orange-200 transition-colors">Train with the spirits 🎃</p>
                   </div>
                 </div>
-                <ChevronRight className="w-6 h-6 text-purple-400 group-hover:text-purple-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                <ChevronRight className="w-6 h-6 text-purple-400 group-hover:text-orange-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Activity Focus - Full Width Below */}
-        <div className="mb-6 max-w-2xl mx-auto lg:max-w-full">
-          <h2 className="text-xl font-bold mb-4">Activity Focus</h2>
+        <div className="mb-6 max-w-2xl mx-auto lg:max-w-full relative z-10">
+          <h2 className="text-xl font-bold mb-4 text-purple-100 flex items-center gap-2">
+            <span className="text-2xl">💪</span>
+            Activity Focus
+          </h2>
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-4">
@@ -284,7 +297,7 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
             {activities.slice(0, 16).map((activity) => (
               <Card
                 key={activity.name}
-                className="overflow-hidden cursor-pointer hover:scale-105 transition-transform active:scale-95 group"
+                className="overflow-hidden cursor-pointer hover:scale-105 transition-all active:scale-95 group bg-gradient-to-br from-purple-950/60 to-purple-900/40 border-purple-500/30 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20"
                 onClick={() => {
                   onActivitySelect?.(activity);
                 }}
@@ -327,43 +340,46 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
           </div>
         </div>
 
-        {/* Test Mode Banner */}
-        <div className="mb-6 max-w-2xl mx-auto lg:max-w-full">
+        {/* Test Mode Banner - Halloween Themed */}
+        <div className="mb-6 max-w-2xl mx-auto lg:max-w-full relative z-10">
           <Card
-            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-red-900 via-gray-800 to-red-900 border-red-500/50 hover:border-red-400/80 shadow-xl shadow-red-500/30 hover:shadow-2xl hover:shadow-red-500/50 group"
+            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-purple-900 via-purple-950 to-purple-900 border-purple-500/50 hover:border-red-500/80 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-red-500/50 group"
             onClick={() => onTabChange?.('test-mode')}
           >
             <CardContent className="p-6 lg:p-8 relative w-full">
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 animate-pulse" />
-              {/* Floating icons - always visible with white color */}
-              <div className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none">
-                <Trophy className="absolute top-4 right-12 w-5 h-5 text-white drop-shadow-lg animate-bounce" />
-                <Target className="absolute bottom-4 right-24 w-4 h-4 text-white drop-shadow-lg animate-bounce" style={{ animationDelay: '0.3s' }} />
-                <Zap className="absolute top-1/2 right-32 w-6 h-6 text-white drop-shadow-lg animate-bounce" style={{ animationDelay: '0.6s' }} />
+              {/* Floating icons - Halloween themed */}
+              <div className="absolute inset-0 opacity-30 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none">
+                <Trophy className="absolute top-4 right-12 w-5 h-5 text-orange-300 drop-shadow-lg animate-bounce" />
+                <div className="absolute bottom-4 right-24 text-2xl animate-bounce" style={{ animationDelay: '0.3s' }}>💀</div>
+                <Zap className="absolute top-1/2 right-32 w-6 h-6 text-red-300 drop-shadow-lg animate-bounce" style={{ animationDelay: '0.6s' }} />
               </div>
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-red-800/60 flex items-center justify-center border-2 border-red-500/50 group-hover:border-red-400/80 group-hover:bg-red-700/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-red-500/20">
-                    <Target className="w-7 h-7 lg:w-8 lg:h-8 text-red-400 animate-pulse group-hover:animate-spin" />
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-purple-800/60 flex items-center justify-center border-2 border-purple-500/50 group-hover:border-red-500/80 group-hover:bg-purple-700/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20 group-hover:shadow-red-500/30">
+                    <Target className="w-7 h-7 lg:w-8 lg:h-8 text-purple-300 animate-pulse group-hover:text-red-300 group-hover:animate-spin" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg lg:text-xl text-red-100 flex items-center space-x-2 group-hover:text-white transition-colors mb-1">
-                      <span>Test Mode</span>
-                      <Badge className="bg-red-700/50 text-red-200 border-red-500/30 group-hover:bg-red-600/70 group-hover:text-red-100 transition-all text-xs">BETA</Badge>
+                    <h3 className="font-bold text-lg lg:text-xl text-purple-100 flex items-center space-x-2 group-hover:text-red-100 transition-colors mb-1">
+                      <span>🎯 Test Mode</span>
+                      <Badge className="bg-red-500/20 text-red-300 border-red-500/30 group-hover:bg-red-500/30 group-hover:text-red-200 transition-all text-xs">CHALLENGE</Badge>
                     </h3>
-                    <p className="text-sm lg:text-base text-red-300 group-hover:text-red-200 transition-colors">Challenge yourself 🎯</p>
+                    <p className="text-sm lg:text-base text-purple-300 group-hover:text-red-200 transition-colors">Face your fears 💀</p>
                   </div>
                 </div>
-                <ChevronRight className="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                <ChevronRight className="w-6 h-6 text-purple-400 group-hover:text-red-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Challenges Section */}
-        <div className="mb-6">
+        <div className="mb-6 relative z-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Challenges</h2>
+            <h2 className="text-xl font-bold text-purple-100 flex items-center gap-2">
+              <span className="text-2xl">🏆</span>
+              Challenges
+            </h2>
           </div>
 
 
@@ -372,7 +388,7 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
             {getFilteredChallenges().map((challenge) => (
               <Card
                 key={challenge.id}
-                className={`flex-shrink-0 w-48 overflow-hidden cursor-pointer hover:scale-105 transition-transform relative`}
+                className={`flex-shrink-0 w-48 overflow-hidden cursor-pointer hover:scale-105 transition-all relative bg-gradient-to-br from-purple-950/60 to-purple-900/40 border-purple-500/30 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20`}
                 onClick={() => onChallengeRedirect?.(challenge.id)}
               >
                 <div
@@ -521,6 +537,23 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
           </div>
         </div>
       </div>
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          50% { transform: translateY(-20px) translateX(10px); }
+        }
+        @keyframes float-delayed {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          50% { transform: translateY(-30px) translateX(-15px); }
+        }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-float-delayed { animation: float-delayed 3s ease-in-out infinite; }
+        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
+      `}</style>
     </>
   );
 };

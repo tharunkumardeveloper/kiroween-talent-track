@@ -106,7 +106,7 @@ const Index = () => {
     // Skip setup for athletes, go directly to home
     setAppState('home');
     setIsFirstTime(false);
-    
+
     // Save user data
     localStorage.setItem('talenttrack_user', JSON.stringify({
       role: role,
@@ -186,7 +186,7 @@ const Index = () => {
 
   const handleTabChange = (tab: string) => {
     scrollToTop();
-    
+
     // Handle special modes that need their own app state
     if (tab === 'ghost-mode') {
       setAppState('ghost-mode');
@@ -325,7 +325,7 @@ const Index = () => {
         />
       );
     }
-    
+
     // Use regular WorkoutInterface for normal mode
     return (
       <WorkoutInterface
@@ -421,7 +421,7 @@ const Index = () => {
               <div className="flex items-center h-16 px-6 border-b bg-primary">
                 <h1 className="text-xl font-bold text-white">TalentTrack</h1>
               </div>
-              
+
               {/* Navigation Items */}
               <nav className="flex-1 px-4 py-6 space-y-2">
                 {[
@@ -436,11 +436,10 @@ const Index = () => {
                       scrollToTop();
                       setActiveTab(id);
                     }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                      activeTab === id 
-                        ? 'bg-primary text-primary-foreground font-semibold' 
-                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === id
+                      ? 'bg-primary text-primary-foreground font-semibold'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                      }`}
                   >
                     <span className="text-2xl">{icon}</span>
                     <span className="text-sm">{label}</span>
@@ -482,21 +481,21 @@ const Index = () => {
           {/* Main Content Area */}
           <div className="lg:ml-64 flex-1">
             {userRole === 'coach' ? (
-            <CoachDashboard
-              userName={userName}
-              onTabChange={handleTabChange}
-              activeTab={activeTab}
-              onProfileOpen={handleProfileOpen}
-              onSettingsOpen={handleSettingsOpen}
-            />
-          ) : userRole === 'admin' ? (
-            <SAIAdminDashboard
-              userName={userName}
-              onTabChange={setActiveTab}
-              activeTab={activeTab}
-              onProfileOpen={handleProfileOpen}
-              onSettingsOpen={handleSettingsOpen}
-            />
+              <CoachDashboard
+                userName={userName}
+                onTabChange={handleTabChange}
+                activeTab={activeTab}
+                onProfileOpen={handleProfileOpen}
+                onSettingsOpen={handleSettingsOpen}
+              />
+            ) : userRole === 'admin' ? (
+              <SAIAdminDashboard
+                userName={userName}
+                onTabChange={setActiveTab}
+                activeTab={activeTab}
+                onProfileOpen={handleProfileOpen}
+                onSettingsOpen={handleSettingsOpen}
+              />
             ) : (
               <div className="min-h-screen bg-background">
                 {/* Top Bar for all athlete tabs - Mobile Only */}
