@@ -1111,8 +1111,6 @@ The MIT License is an OSI-approved open source license that allows maximum freed
 
 ---
 
-## 📞 Contact & Support
-
 ### Live Application
 🌐 **Demo**: [kiroween-talent-track.vercel.app](https://kiroween-talent-track.vercel.app)
 
@@ -1121,15 +1119,6 @@ The MIT License is an OSI-approved open source license that allows maximum freed
 
 ### Documentation
 📚 **Kiro Docs**: See `.kiro/docs/` directory for comprehensive documentation
-
-### Issues & Bugs
-🐛 **Report Issues**: [GitHub Issues](https://github.com/tharunkumardeveloper/kiroween-talent-track/issues)
-
-### Social Media
-- **Twitter**: [@talenttrack_app](https://twitter.com/talenttrack_app)
-- **LinkedIn**: [Talent Track](https://linkedin.com/company/talenttrack)
-
----
 
 ## 🎉 Get Started Now!
 
