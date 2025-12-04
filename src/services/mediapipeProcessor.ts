@@ -92,6 +92,7 @@ class MediaPipeProcessor {
   private processedFrames: ImageData[] = [];
   private cancelProcessing = false;
   private capturedLandmarks: PoseLandmark[][] = [];  // Store pose landmarks for each frame
+  private isTestMode = false;  // Flag to track Test Mode vs Normal Mode
 
   async initialize() {
     try {
@@ -124,12 +125,13 @@ class MediaPipeProcessor {
         }
       });
 
+      // Default configuration (will be overridden in processVideo based on mode)
       this.pose.setOptions({
-        modelComplexity: 1, // Match Python: model_complexity=1
-        smoothLandmarks: true, // Keep smooth for better tracking
+        modelComplexity: 1,
+        smoothLandmarks: true,
         enableSegmentation: false,
-        smoothSegmentation: false, // Disable for frame-by-frame processing
-        minDetectionConfidence: 0.5, // Match Python: min_detection_confidence=0.5
+        smoothSegmentation: false,
+        minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
       });
 
@@ -248,10 +250,39 @@ class MediaPipeProcessor {
   async processVideo(
     videoFile: File,
     activityName: string,
-    onProgress: (progress: number, frame: string, reps?: number, metrics?: any) => void
+    onProgress: (progress: number, frame: string, reps?: number, metrics?: any) => void,
+    isTestMode?: boolean
   ): Promise<ProcessingResult> {
     if (!this.pose) {
       await this.initialize();
+    }
+
+    // Store Test Mode flag for use in processing
+    this.isTestMode = isTestMode || false;
+    
+    // Apply mode-specific MediaPipe configuration
+    if (this.isTestMode) {
+      console.log('🎯 TEST MODE: Using optimized MediaPipe configuration for faster processing');
+      this.pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: false, // TEST MODE: Disable smoothing for faster processing
+        enableSegmentation: false,
+        smoothSegmentation: false,
+        minDetectionConfidence: 0.4, // TEST MODE: Lower confidence for faster detection
+        minTrackingConfidence: 0.4 // TEST MODE: Lower confidence for faster tracking
+      });
+      console.log('✅ TEST MODE config applied: smoothLandmarks=false, confidence=0.4');
+    } else {
+      console.log('🎬 NORMAL MODE: Using standard MediaPipe configuration');
+      this.pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true, // NORMAL MODE: Keep smoothing for better tracking
+        enableSegmentation: false,
+        smoothSegmentation: false,
+        minDetectionConfidence: 0.5, // NORMAL MODE: Standard confidence
+        minTrackingConfidence: 0.5 // NORMAL MODE: Standard confidence
+      });
+      console.log('✅ NORMAL MODE config applied: smoothLandmarks=true, confidence=0.5');
     }
 
     // Reset state for new processing session
@@ -345,6 +376,9 @@ class MediaPipeProcessor {
       // Manual frame-by-frame processing - GUARANTEED same behavior on all devices
       const processVideoFrameByFrame = async () => {
         console.log('🎬 Starting manual frame-by-frame processing...');
+        
+        // Track processing start time for performance metrics
+        const processingStartTime = performance.now();
 
         const frameInterval = 1 / originalFPS; // Time between frames
         let currentFrameIndex = 0;
@@ -369,15 +403,20 @@ class MediaPipeProcessor {
           // Seek to exact frame time
           video.currentTime = targetTime;
 
-          // Wait for seek with timeout
+          // Wait for seek with timeout (conditional based on mode)
+          const seekAttempts = this.isTestMode ? 40 : 60; // TEST MODE: 200ms, NORMAL MODE: 300ms
           await new Promise<void>((seekResolve) => {
             let attempts = 0;
             const checkSeek = () => {
               attempts++;
               if (Math.abs(video.currentTime - targetTime) < 0.02 || video.readyState >= 2) {
                 seekResolve();
-              } else if (attempts > 60) { // 300ms timeout for reliability
-                console.warn(`Seek timeout at ${targetTime.toFixed(2)}s`);
+              } else if (attempts > seekAttempts) {
+                if (this.isTestMode && attempts === seekAttempts + 1) {
+                  console.log(`⚡ TEST MODE: Fast seek timeout at ${targetTime.toFixed(2)}s (${seekAttempts * 5}ms)`);
+                } else if (!this.isTestMode && attempts === seekAttempts + 1) {
+                  console.warn(`Seek timeout at ${targetTime.toFixed(2)}s`);
+                }
                 seekResolve();
               } else {
                 setTimeout(checkSeek, 5);
@@ -420,15 +459,19 @@ class MediaPipeProcessor {
           try {
             await this.pose!.send({ image: video });
 
-            // Wait for result with generous timeout to ensure all frames are processed
-            const timeoutMs = 500;
+            // Wait for result with timeout (conditional based on mode)
+            const timeoutMs = this.isTestMode ? 300 : 500; // TEST MODE: 300ms, NORMAL MODE: 500ms
             const timeoutPromise = new Promise<void>((_, timeoutReject) => {
               setTimeout(() => timeoutReject(new Error('timeout')), timeoutMs);
             });
 
             await Promise.race([frameResultPromise, timeoutPromise]).catch(() => {
               if (!resultReceived) {
-                console.warn(`Frame ${frameCount}: MediaPipe timeout after ${timeoutMs}ms`);
+                if (this.isTestMode) {
+                  console.log(`⚡ TEST MODE: Fast processing timeout at frame ${frameCount} (${timeoutMs}ms)`);
+                } else {
+                  console.warn(`Frame ${frameCount}: MediaPipe timeout after ${timeoutMs}ms`);
+                }
               }
             });
 
@@ -479,14 +522,40 @@ class MediaPipeProcessor {
           }
         }
 
-        // All frames processed
+        // All frames processed - Calculate performance metrics
+        const actualDuration = video.duration;
+        const processingEndTime = performance.now();
+        const totalProcessingTime = (processingEndTime - processingStartTime) / 1000; // Convert to seconds
+        const processingFPS = frameCount / totalProcessingTime;
+        const speedRatio = actualDuration / totalProcessingTime;
+        
         console.log('✅ Video processing complete!');
         console.log('  Video duration:', video.duration.toFixed(2), 'seconds');
         console.log('  Frames collected:', this.processedFrames.length);
         console.log('  Expected frames:', totalFramesToProcess);
+        
+        // Frame completeness validation
+        const frameCompleteness = (this.processedFrames.length / totalFramesToProcess) * 100;
+        if (frameCompleteness < 95) {
+          console.warn(`⚠️ Frame completeness: ${frameCompleteness.toFixed(1)}% - Some frames may have been skipped`);
+        } else {
+          console.log(`✅ Frame completeness: ${frameCompleteness.toFixed(1)}% - All frames captured`);
+        }
+        
+        // Performance metrics
+        if (this.isTestMode) {
+          console.log('⚡ TEST MODE Performance Metrics:');
+          console.log(`  ⏱️  Total processing time: ${totalProcessingTime.toFixed(2)}s`);
+          console.log(`  🚀 Processing FPS: ${processingFPS.toFixed(2)} fps`);
+          console.log(`  ⚡ Speed ratio: ${speedRatio.toFixed(2)}x ${speedRatio > 1 ? '(faster than real-time!)' : '(slower than real-time)'}`);
+          if (speedRatio > 1) {
+            console.log(`  ✅ Processed ${actualDuration.toFixed(1)}s video in ${totalProcessingTime.toFixed(1)}s`);
+          }
+        } else {
+          console.log(`📊 Processing time: ${totalProcessingTime.toFixed(2)}s (${processingFPS.toFixed(2)} fps)`);
+        }
 
         const finalReps = detector.getReps ? detector.getReps() : [];
-        const actualDuration = video.duration;
 
         // CRITICAL: Calculate exact FPS to match duration precisely
         // Use high precision to ensure output duration matches input exactly
@@ -655,12 +724,12 @@ class MediaPipeProcessor {
           const frameData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 
           // Check if this frame is different from the last one (detect stuck frames)
-          // Use less aggressive duplicate detection to avoid skipping valid frames
+          // Use conditional duplicate detection based on mode
           let isDuplicate = false;
           if (this.processedFrames.length > 0) {
             const lastFrame = this.processedFrames[this.processedFrames.length - 1];
-            // Simple duplicate check: compare a few pixels (less aggressive)
-            const sampleSize = 50; // Reduced from 100 for less aggressive checking
+            // Simple duplicate check: compare a few pixels
+            const sampleSize = 50;
             let differences = 0;
             for (let i = 0; i < sampleSize; i++) {
               const idx = Math.floor((i / sampleSize) * frameData.data.length);
@@ -668,7 +737,9 @@ class MediaPipeProcessor {
                 differences++;
               }
             }
-            isDuplicate = differences < 5; // Less than 5% different = duplicate
+            // Conditional threshold: TEST MODE is less aggressive (2%) to capture more frames
+            const duplicateThreshold = this.isTestMode ? 2 : 5;
+            isDuplicate = differences < duplicateThreshold;
           }
 
           if (!isDuplicate) {

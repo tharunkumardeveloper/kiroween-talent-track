@@ -63,13 +63,14 @@ const TestVideoProcessor = ({
       const blob = await response.blob();
       const file = new File([blob], `${activityName}.mp4`, { type: 'video/mp4' });
 
-      // Process video with MediaPipe
+      // Process video with MediaPipe in TEST MODE
       const processingResult = await mediapipeProcessor.processVideo(
         file,
         activityName,
         (prog) => {
           setProgress(Math.floor(prog));
-        }
+        },
+        true  // isTestMode = true for optimized processing
       );
 
       console.log('✅ Processing complete');
@@ -343,8 +344,11 @@ const TestVideoProcessor = ({
                 </div>
               </div>
               <div className="mt-4 space-y-2">
-                <p className="text-xs text-black text-center font-medium">
+                <p className="text-xs text-center font-medium test-mode-info-text-black">
                   Video shows MediaPipe skeleton tracking and rep counting
+                </p>
+                <p className="text-xs text-center font-medium test-mode-info-text-black">
+                  💡 If video doesn't play, click "Download Video" and open in VLC
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -354,10 +358,10 @@ const TestVideoProcessor = ({
                       const url = URL.createObjectURL(processedData.videoBlob);
                       window.open(url, '_blank');
                     }}
-                    className="flex-1 bg-white hover:bg-gray-100 text-black border-black/20"
+                    className="flex-1 bg-white hover:bg-gray-100 border-black/20"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open in New Tab
+                    <ExternalLink className="w-4 h-4 mr-2 test-mode-info-text-black" />
+                    <span className="test-mode-info-text-black">Open in New Tab</span>
                   </Button>
                   <Button
                     variant="default"
@@ -369,10 +373,10 @@ const TestVideoProcessor = ({
                       a.download = `${activityName.replace(/\s+/g, '_')}_test_analyzed.mp4`;
                       a.click();
                     }}
-                    className="flex-1 bg-black hover:bg-gray-900 text-white"
+                    className="flex-1 bg-black hover:bg-gray-900"
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Video
+                    <Download className="w-4 h-4 mr-2 test-mode-button-text-white" />
+                    <span className="test-mode-button-text-white">Download Video</span>
                   </Button>
                 </div>
               </div>
@@ -439,9 +443,9 @@ const TestVideoProcessor = ({
           {/* Action Button - BRIGHT RED GRADIENT */}
           <Button
             onClick={handleComplete}
-            className="w-full h-14 lg:h-16 text-lg lg:text-xl font-bold bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:from-red-700 hover:via-red-600 hover:to-red-700 transition-all text-black"
+            className="w-full h-14 lg:h-16 text-lg lg:text-xl font-bold bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:from-red-700 hover:via-red-600 hover:to-red-700 transition-all"
           >
-            Complete Evaluation
+            <span className="test-mode-button-text-white">Submit Workout</span>
           </Button>
         </div>
       </div>

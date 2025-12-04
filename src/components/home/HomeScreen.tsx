@@ -12,6 +12,7 @@ import {
   Trophy,
   Target
 } from 'lucide-react';
+import ChatWidget from '@/components/chat/ChatWidget';
 
 // Import challenge images from root challenges folder
 const pushupPowerImage = '/challenges/pushup-power.webp';
@@ -430,6 +431,30 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
           </CardContent>
         </Card>
       </div>
+
+      {/* FitFranken Chat Widget */}
+      <ChatWidget
+        currentTab={activeTab as 'training' | 'discover' | 'report' | 'roadmap'}
+        userContext={{
+          userName,
+          userRole,
+          recentWorkouts: [], // TODO: Load from workout history
+          currentStats: {
+            totalWorkouts: 24,
+            weeklyStreak: 5,
+            badges: 12
+          }
+        }}
+        onNavigate={(destination, payload) => {
+          if (destination === 'ghost-mode' || destination === 'test-mode') {
+            onTabChange(destination);
+          } else if (destination === 'workout' && payload?.workoutName) {
+            onActivitySelect?.({ name: payload.workoutName });
+          } else if (['training', 'discover', 'report', 'roadmap'].includes(destination)) {
+            onTabChange(destination);
+          }
+        }}
+      />
 
       {/* Bottom Navigation - Hidden on large screens */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-subtle border-t safe-bottom lg:hidden">
