@@ -18,21 +18,7 @@ const AuthFlow = ({ onLogin }: AuthFlowProps) => {
       icon: User,
       description: 'Track your fitness journey',
       gradient: 'from-purple-600 to-purple-800'
-    },
-    { 
-      role: 'coach' as const, 
-      label: 'Coach',
-      icon: Users,
-      description: 'Manage and guide athletes',
-      gradient: 'from-purple-700 to-purple-900'
-    },
-    { 
-      role: 'admin' as const, 
-      label: 'SAI Admin',
-      icon: Shield,
-      description: 'Oversee all operations',
-      gradient: 'from-purple-800 to-purple-950'
-    },
+    }
   ];
 
   const handleRoleSelect = (role: 'athlete' | 'coach' | 'admin') => {
@@ -54,18 +40,18 @@ const AuthFlow = ({ onLogin }: AuthFlowProps) => {
               <Zap className="w-16 h-16 text-white mx-auto" />
             </div>
             <h1 className="text-5xl lg:text-6xl font-bold text-white mb-3">
-              TalentTrack
+              KIROWEEN - FRANKENSTEIN 🎃
             </h1>
             <p className="text-white/90 text-xl lg:text-2xl mb-2">
               Track. Train. Transform.
             </p>
             <p className="text-white/70 text-base">
-              Select your role to continue
+              Click continue to start your journey
             </p>
           </div>
 
           {/* Role Cards */}
-          <div className="grid grid-cols-3 gap-6 animate-slide-up">
+          <div className="grid grid-cols-1 gap-6 animate-slide-up max-w-md mx-auto">
             {roles.map((roleData, index) => {
               const Icon = roleData.icon;
               const isSelected = selectedRole === roleData.role;
@@ -138,7 +124,7 @@ const AuthFlow = ({ onLogin }: AuthFlowProps) => {
             <Zap className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-            TalentTrack
+            KIROWEEN - FRANKENSTEIN 🎃
           </h1>
           <p className="text-white/80 text-sm font-medium">
             Track. Train. Transform.
@@ -148,7 +134,7 @@ const AuthFlow = ({ onLogin }: AuthFlowProps) => {
         {/* Role Selection Cards - Scrollable */}
         <div className="flex-1 px-5 pb-6 overflow-y-auto">
           <p className="text-white/70 text-xs font-medium mb-4 text-center uppercase tracking-wider">
-            Choose Your Role
+            Get Started
           </p>
           
           <div className="space-y-3 animate-slide-up">

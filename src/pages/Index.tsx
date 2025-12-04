@@ -103,12 +103,16 @@ const Index = () => {
     };
     setUserName(names[role]);
 
-    // Check if user needs setup (simulate first-time login)
-    if (isFirstTime) {
-      setAppState('setup');
-    } else {
-      setAppState('home');
-    }
+    // Skip setup for athletes, go directly to home
+    setAppState('home');
+    setIsFirstTime(false);
+    
+    // Save user data
+    localStorage.setItem('talenttrack_user', JSON.stringify({
+      role: role,
+      name: names[role],
+      setupComplete: true
+    }));
   };
 
   const handleSetupComplete = (userData: any) => {
