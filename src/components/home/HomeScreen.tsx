@@ -181,7 +181,7 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
         {/* Weekly Progress & Ghost Mode - Side by Side on Desktop */}
         <div className="mb-6 max-w-2xl mx-auto lg:max-w-full lg:grid lg:grid-cols-2 lg:gap-6 relative z-10">
           {/* Weekly Goal Progress */}
-          <Card className="animate-fade-in mb-6 lg:mb-0 bg-gradient-to-br from-purple-950/80 to-purple-900/60 border-purple-500/30 backdrop-blur-sm shadow-lg shadow-purple-500/10">
+          <Card className="animate-fade-in mb-6 lg:mb-0 bg-gradient-to-br from-orange-600/90 to-orange-800/80 border-orange-500/40 backdrop-blur-sm shadow-lg shadow-orange-500/20">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg text-purple-100 flex items-center gap-2">
@@ -253,7 +253,7 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
                   <div>
                     <h3 className="font-bold text-lg lg:text-xl text-purple-100 flex items-center space-x-2 group-hover:text-orange-100 transition-colors mb-1">
                       <span>👻 Ghost Mode</span>
-                      <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 group-hover:bg-orange-500/30 group-hover:text-orange-200 transition-all text-xs">SPOOKY</Badge>
+                      <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 group-hover:bg-orange-500/30 group-hover:text-orange-200 transition-all text-xs">NEW</Badge>
                     </h3>
                     <p className="text-sm lg:text-base text-purple-300 group-hover:text-orange-200 transition-colors">Train with the spirits 🎃</p>
                   </div>
@@ -266,7 +266,7 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
 
         {/* Activity Focus - Full Width Below */}
         <div className="mb-6 max-w-2xl mx-auto lg:max-w-full relative z-10">
-          <h2 className="text-xl font-bold mb-4 text-purple-100 flex items-center gap-2">
+          <h2 className="text-xl font-bold mb-4 text-black dark:text-white flex items-center gap-2">
             <span className="text-2xl">💪</span>
             Activity Focus
           </h2>
@@ -340,10 +340,10 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
           </div>
         </div>
 
-        {/* Test Mode Banner - Halloween Themed */}
+        {/* Test Mode Banner */}
         <div className="mb-6 max-w-2xl mx-auto lg:max-w-full relative z-10">
           <Card
-            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-purple-900 via-purple-950 to-purple-900 border-purple-500/50 hover:border-red-500/80 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-red-500/50 group"
+            className="overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all duration-300 bg-gradient-to-r from-red-900 via-red-950 to-red-900 border-red-500/50 hover:border-red-400/80 shadow-xl shadow-red-500/30 hover:shadow-2xl hover:shadow-red-500/50 group"
             onClick={() => onTabChange?.('test-mode')}
           >
             <CardContent className="p-6 lg:p-8 relative w-full">
@@ -356,18 +356,18 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
               </div>
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-purple-800/60 flex items-center justify-center border-2 border-purple-500/50 group-hover:border-red-500/80 group-hover:bg-purple-700/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20 group-hover:shadow-red-500/30">
-                    <Target className="w-7 h-7 lg:w-8 lg:h-8 text-purple-300 animate-pulse group-hover:text-red-300 group-hover:animate-spin" />
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-red-800/60 flex items-center justify-center border-2 border-red-500/50 group-hover:border-red-400/80 group-hover:bg-red-700/70 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-red-500/20">
+                    <Target className="w-7 h-7 lg:w-8 lg:h-8 text-red-300 animate-pulse group-hover:animate-spin" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg lg:text-xl text-purple-100 flex items-center space-x-2 group-hover:text-red-100 transition-colors mb-1">
+                    <h3 className="font-bold text-lg lg:text-xl text-red-100 flex items-center space-x-2 group-hover:text-white transition-colors mb-1">
                       <span>🎯 Test Mode</span>
-                      <Badge className="bg-red-500/20 text-red-300 border-red-500/30 group-hover:bg-red-500/30 group-hover:text-red-200 transition-all text-xs">CHALLENGE</Badge>
+                      <Badge className="bg-red-700/50 text-red-200 border-red-500/30 group-hover:bg-red-600/70 group-hover:text-red-100 transition-all text-xs">BETA</Badge>
                     </h3>
-                    <p className="text-sm lg:text-base text-purple-300 group-hover:text-red-200 transition-colors">Face your fears 💀</p>
+                    <p className="text-sm lg:text-base text-red-300 group-hover:text-red-200 transition-colors">Challenge yourself 🎯</p>
                   </div>
                 </div>
-                <ChevronRight className="w-6 h-6 text-purple-400 group-hover:text-red-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                <ChevronRight className="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
