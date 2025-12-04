@@ -62,7 +62,7 @@ const CoachDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, onSet
   ];
 
   const athletes = [
-    { id: 1, name: 'Ratheesh Kumar', email: 'ratheesh@sai.gov.in', level: 8, lastActivity: '2 hours ago', challenges: 12, badges: 28 },
+    { id: 1, name: 'Athlete Kumar', email: 'athlete@sai.gov.in', level: 8, lastActivity: '2 hours ago', challenges: 12, badges: 28 },
     { id: 2, name: 'Priya Sharma', email: 'priya@sai.gov.in', level: 6, lastActivity: '1 day ago', challenges: 8, badges: 19 },
     { id: 3, name: 'Akash Patel', email: 'akash@sai.gov.in', level: 10, lastActivity: '30 min ago', challenges: 15, badges: 35 },
     { id: 4, name: 'Rohan Singh', email: 'rohan@sai.gov.in', level: 4, lastActivity: '3 hours ago', challenges: 6, badges: 14 },

@@ -44,7 +44,7 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
   ];
 
   const athletes = [
-    { id: 1, name: 'Ratheesh Kumar', coach: 'Rajesh Menon', level: 8, status: 'Active', challenges: 12, badges: 28 },
+    { id: 1, name: 'Athlete Kumar', coach: 'Rajesh Menon', level: 8, status: 'Active', challenges: 12, badges: 28 },
     { id: 2, name: 'Priya Sharma', coach: 'Anjali Desai', level: 6, status: 'Active', challenges: 8, badges: 19 },
     { id: 3, name: 'Akash Patel', coach: 'Vikram Singh', level: 10, status: 'Active', challenges: 15, badges: 35 },
     { id: 4, name: 'Rohan Singh', coach: 'Rajesh Menon', level: 4, status: 'Inactive', challenges: 6, badges: 14 },
@@ -177,7 +177,7 @@ const SAIAdminDashboard = ({ userName, onTabChange, activeTab, onProfileOpen, on
         <CardContent>
           <div className="space-y-3">
             {[
-              { name: 'Ratheesh Kumar', domain: 'Strength', level: 12, points: 2450, badges: 35, rank: 1 },
+              { name: 'Athlete Kumar', domain: 'Strength', level: 12, points: 2450, badges: 35, rank: 1 },
               { name: 'Priya Sharma', domain: 'Endurance', level: 11, points: 2380, badges: 32, rank: 2 },
               { name: 'Akash Patel', domain: 'Calisthenics', level: 10, points: 2250, badges: 28, rank: 3 },
               { name: 'Kavya Nair', domain: 'Flexibility', level: 9, points: 2100, badges: 25, rank: 4 },

@@ -447,6 +447,7 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
         }}
         onNavigate={(destination, payload) => {
           console.log('ChatWidget navigation:', destination, payload);
+          
           if (destination === 'ghost-mode' || destination === 'test-mode') {
             onTabChange(destination);
           } else if (destination === 'workout' && payload?.workoutId) {
@@ -461,8 +462,17 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
               'broad-jump': 'Broad Jump'
             };
             const activityName = workoutNameMap[payload.workoutId];
-            if (activityName && onActivitySelect) {
-              onActivitySelect({ name: activityName });
+            console.log('Mapped activity name:', activityName);
+            
+            if (activityName) {
+              // First switch to training tab
+              onTabChange('training');
+              // Then trigger activity selection
+              setTimeout(() => {
+                if (onActivitySelect) {
+                  onActivitySelect(activityName);
+                }
+              }, 100);
             }
           } else if (['training', 'discover', 'report', 'roadmap'].includes(destination)) {
             onTabChange(destination);

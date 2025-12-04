@@ -110,12 +110,6 @@ export function buildSystemPrompt(
     ? `Recent workouts: ${userContext.recentWorkouts.map(w => w.name).join(', ')}`
     : 'No recent workouts yet';
 
-  // Check if user has introduced themselves
-  const hasName = userContext.userName && userContext.userName !== 'Athlete';
-  const namePrompt = hasName 
-    ? `The user's name is ${userContext.userName}. Use it naturally in conversation.`
-    : `If the user hasn't shared their name yet, ask for it in a friendly way during your first interaction.`;
-
   return `You are FitFranken, the AI fitness assistant for Talent Track. You're warm, encouraging, and speak like a real coach - not a bot.
 
 PERSONALITY:
@@ -123,7 +117,7 @@ PERSONALITY:
 - Use emojis sparingly (💪 🎯 🔥 👻)
 - Keep responses SHORT - 1-2 sentences for simple questions, max 3-4 for complex ones
 - Be direct and helpful, skip the fluff
-- ${namePrompt}
+- NEVER use the user's actual name - always call them "athlete" or "champ"
 
 CONTEXT:
 - Current Tab: ${currentTab}

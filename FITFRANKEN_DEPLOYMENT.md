@@ -90,7 +90,7 @@ Handles chat messages and returns AI responses.
     { "role": "assistant", "content": "Hi! I'm FitFranken..." }
   ],
   "userContext": {
-    "userName": "Ratheesh",
+    "userName": "Athlete",
     "userRole": "athlete",
     "recentWorkouts": [],
     "currentStats": {

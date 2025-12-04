@@ -59,7 +59,7 @@ const ChatWidget = ({ currentTab, userContext, onNavigate }: ChatWidgetProps) =>
       const welcomeMessage: Message = {
         id: 'welcome',
         role: 'assistant',
-        content: `Hey! 👻 I'm FitFranken, your AI fitness coach. What's your name?`,
+        content: `Hey athlete! 👻 I'm FitFranken, your AI fitness coach. What can I help you with?`,
         timestamp: Date.now()
       };
       setMessages([welcomeMessage]);
@@ -99,12 +99,11 @@ const ChatWidget = ({ currentTab, userContext, onNavigate }: ChatWidgetProps) =>
     const welcomeMessage: Message = {
       id: 'welcome-' + Date.now(),
       role: 'assistant',
-      content: `Hey! 👻 Starting fresh. What's your name?`,
+      content: `Hey athlete! 👻 Starting fresh. What can I help you with?`,
       timestamp: Date.now()
     };
     setMessages([welcomeMessage]);
     localStorage.removeItem('fitfranken_chat_history');
-    localStorage.removeItem('fitfranken_user_name');
   };
 
   return (
